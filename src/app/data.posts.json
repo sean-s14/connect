@@ -1,0 +1,104 @@
+[
+  {
+    "id": 1,
+    "name": "John Doe",
+    "handle": "johndoe",
+    "timestamp": "2023-06-26T09:30:00Z",
+    "content": "Excited to launch my new website! 🎉 #webdevelopment #launch",
+    "likes": 10,
+    "shares": 5,
+    "comments": [
+      {
+        "id": 1,
+        "name": "Jane Smith",
+        "handle": "janesmith",
+        "timestamp": "2023-06-26T10:00:00Z",
+        "likes": 3,
+        "content": "Thank you, John! Your website looks fantastic. I'm impressed with your design skills! Thank you, John! Your website looks fantastic. I'm impressed with your design skills!"
+      },
+      {
+        "id": 2,
+        "name": "Michael Johnson",
+        "handle": "michaeljohnson",
+        "timestamp": "2023-06-26T11:30:00Z",
+        "likes": 2,
+        "content": "Congrats on the launch, John! I'm excited to explore your website and see what you've built."
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "name": "Sarah Adams",
+    "handle": "sarahadams",
+    "timestamp": "2023-06-25T15:45:00Z",
+    "content": "Just had an amazing hiking trip! 🏞️ #nature #adventure",
+    "likes": 15,
+    "shares": 8,
+    "comments": []
+  },
+  {
+    "id": 3,
+    "name": "Emily Wilson",
+    "handle": "emilywilson",
+    "timestamp": "2023-06-24T18:20:00Z",
+    "content": "Excited to share my new artwork! 🎨 #art #creativity",
+    "likes": 7,
+    "shares": 2,
+    "comments": [
+      {
+        "id": 1,
+        "name": "Alex Brown",
+        "handle": "alexbrown",
+        "timestamp": "2023-06-24T18:30:00Z",
+        "likes": 1,
+        "content": "Sarah, your hiking trip looks amazing! I should plan a similar adventure soon."
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "name": "David Johnson",
+    "handle": "davidjohnson",
+    "timestamp": "2023-06-23T20:15:00Z",
+    "content": "Had an amazing time at the concert last night! 🎶 #music #livemusic",
+    "likes": 20,
+    "shares": 10,
+    "comments": [
+      {
+        "id": 1,
+        "name": "Sarah Adams",
+        "handle": "sarahadams",
+        "timestamp": "2023-06-23T20:30:00Z",
+        "likes": 4,
+        "content": "Emily, your artwork is incredible! The use of colors and details is outstanding."
+      },
+      {
+        "id": 2,
+        "name": "Michael Thompson",
+        "handle": "michaelthompson",
+        "timestamp": "2023-06-23T21:00:00Z",
+        "likes": 2,
+        "content": "David, the concert sounds amazing! I wish I could have been there. Maybe next time!"
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "name": "Alice Brown",
+    "handle": "alicebrown",
+    "timestamp": "2023-06-22T12:30:00Z",
+    "content": "Just finished reading an amazing book! 📚 #reading #books",
+    "likes": 12,
+    "shares": 4,
+    "comments": [
+      {
+        "id": 1,
+        "name": "John Smith",
+        "handle": "johnsmith",
+        "timestamp": "2023-06-22T12:45:00Z",
+        "likes": 3,
+        "content": "David, the concert sounds amazing! I wish I could have been there. Maybe next time!"
+      }
+    ]
+  }
+]

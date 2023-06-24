@@ -36,4 +36,5 @@ next-env.d.ts
 
 # ===== Custom =====
 # for test data
-data.json  
+# data.json
+# data.*.json
