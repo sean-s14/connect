@@ -10,7 +10,7 @@
 
 @layer components {
   .btn {
-    @apply border-solid border-2 rounded-xl py-1 px-3 transition-colors ease-in-out duration-300;
+    @apply border-solid border-2 rounded py-1 px-3 transition-colors ease-in-out duration-300;
   }
   .btn-primary {
     @apply btn dark:border-slate-900 dark:hover:border-slate-950 dark:bg-slate-900 dark:hover:bg-slate-950;
