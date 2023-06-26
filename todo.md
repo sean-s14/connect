@@ -29,3 +29,21 @@
 
 - Post Creation
 - Notifications
+- Authentication
+  - Twitter
+  - Auth0
+  - Profile Page (Public)
+  - Profile Management (Private)
+  - Settings (Private)
+    - Privacy
+    - Security
+    - Notification
+    - Account Recovery Options
+
+---
+
+# Schemas
+
+- User
+  - Notifications
+- Notification

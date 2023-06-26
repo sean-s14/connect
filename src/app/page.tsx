@@ -7,7 +7,7 @@ import feedTestData from "./data.posts.json";
 
 export default function Home() {
   return (
-    <main className="pt-8 flex flex-col gap-10 items-center">
+    <main className="py-8 flex flex-col gap-10 items-center">
       {feedTestData.map(
         (
           { id, name, handle, timestamp, content, likes, shares, comments },
