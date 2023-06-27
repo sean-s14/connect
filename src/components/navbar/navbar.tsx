@@ -72,13 +72,15 @@ export default function Navbar() {
       </div>
       {status === "authenticated" ? (
         <div className="flex flex-col gap-4 items-center">
-          <Image
-            src={session?.user?.image || ""}
-            alt="users profile image"
-            width={104}
-            height={104}
-            className="rounded outline outline-4 outline-slate-900"
-          />
+          {session?.user?.image && (
+            <Image
+              src={session.user.image || ""}
+              alt="users profile image"
+              width={80}
+              height={80}
+              className="rounded-full outline outline-4 outline-slate-900"
+            />
+          )}
           <button
             className="btn-secondary w-28 text-center"
             onClick={() => signOut()}
