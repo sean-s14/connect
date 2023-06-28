@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 import Image from "next/image";
 
 export default function UserPage() {
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
 
   return (
     <div className="min-w-100 min-h-screen flex flex-col items-center justify-start p-10">
@@ -21,6 +21,7 @@ export default function UserPage() {
         <div className="w-[120px] h-[120px]"></div>
       )}
       <div className="text-xl font-bold">{session?.user?.name}</div>
+      <div className="text-xl font-bold">@{session?.user?.username}</div>
     </div>
   );
 }

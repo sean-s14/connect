@@ -40,7 +40,7 @@ export default function Navbar() {
     // If it does, do nothing, otherwise, add it to the beginning of the array
     if (!authenticatedLinks.find((link) => link.text === "Profile")) {
       authenticatedLinks.unshift({
-        href: `/${session?.user?.name}`,
+        href: `/${session?.user?.username}`,
         text: "Profile",
         Icon: UserIcon,
       });

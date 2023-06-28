@@ -19,6 +19,7 @@
 ## Components
 
 - Navbar
+  - Add responsivity
   - Search Bar
   - Tabs to switch between 'Explore' and 'Following'
 - Pagination

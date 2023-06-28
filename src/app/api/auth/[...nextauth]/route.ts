@@ -2,7 +2,7 @@ import NextAuth from "next-auth";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import EmailProvider from "next-auth/providers/email";
-import { MongoDBAdapter } from "@next-auth/mongodb-adapter";
+import MongoDBAdapter from "@/config/mongoDBAdapter";
 import mongoClientPromise from "@/config/mongoClient";
 
 const handler = NextAuth({
@@ -28,6 +28,15 @@ const handler = NextAuth({
       from: process.env.EMAIL_FROM || "",
     }),
   ],
+  callbacks: {
+    session: async ({ session, user }) => {
+      if (session?.user) {
+        session.user.id = user.id;
+        session.user.username = user.username;
+      }
+      return session;
+    },
+  },
 });
 
 export { handler as GET, handler as POST };

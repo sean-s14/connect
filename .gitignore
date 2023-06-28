@@ -38,3 +38,4 @@ next-env.d.ts
 # for test data
 # data.json
 # data.*.json
+google.credentials.json
