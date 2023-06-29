@@ -59,7 +59,11 @@ export default function Navbar() {
       <Link href={"/"} className="text-2xl font-bold">
         Connect
       </Link>
-      <div className="flex flex-col gap-2 w-[90%] items-center">
+      <div
+        className={`flex flex-col gap-2 w-[90%] items-center  transition-opacity duration-500 ${
+          status === "loading" && "opacity-0 pointer-events-none"
+        }`}
+      >
         {links.map(({ href, text, Icon }) => (
           <Link
             href={href}
@@ -70,40 +74,46 @@ export default function Navbar() {
           </Link>
         ))}
       </div>
-      {status === "authenticated" ? (
-        <div className="flex flex-col gap-4 items-center">
-          {session?.user?.image && (
-            <Image
-              src={session.user.image || ""}
-              alt="users profile image"
-              width={80}
-              height={80}
-              className="rounded-full outline outline-4 outline-slate-900"
-            />
-          )}
-          <button
-            className="btn-secondary w-28 text-center"
-            onClick={() => signOut()}
-          >
-            Log Out
-          </button>
-        </div>
-      ) : (
-        <div className="flex flex-col gap-2">
-          <Link
-            href={"/api/auth/signin"}
-            className="btn-secondary w-28 text-center"
-          >
-            Login
-          </Link>
-          <Link
-            href={"/api/auth/signin"}
-            className="btn-primary flex gap-2 items-center"
-          >
-            <UserPlusIcon className="h-5 w-5" /> Signup
-          </Link>
-        </div>
-      )}
+      <div
+        className={`transition-opacity duration-500 ${
+          status === "loading" && "opacity-0 pointer-events-none"
+        }`}
+      >
+        {status === "authenticated" ? (
+          <div className="flex flex-col gap-4 items-center">
+            {session?.user?.image && (
+              <Image
+                src={session.user.image || ""}
+                alt="users profile image"
+                width={80}
+                height={80}
+                className="rounded-full outline outline-4 outline-slate-900"
+              />
+            )}
+            <button
+              className="btn-secondary w-28 text-center"
+              onClick={() => signOut()}
+            >
+              Log Out
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2">
+            <Link
+              href={"/api/auth/signin"}
+              className="btn-secondary w-28 text-center"
+            >
+              Login
+            </Link>
+            <Link
+              href={"/api/auth/signin"}
+              className="btn-primary flex gap-2 items-center"
+            >
+              <UserPlusIcon className="h-5 w-5" /> Signup
+            </Link>
+          </div>
+        )}
+      </div>
     </nav>
   );
 }
