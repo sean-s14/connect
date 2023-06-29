@@ -10,13 +10,17 @@
 
 @layer components {
   .btn {
-    @apply border-solid border-2 rounded py-1 px-3 transition-colors ease-in-out duration-300;
+    @apply border-solid border-2 rounded transition-colors ease-in-out duration-300;
   }
-  .btn-primary {
+  .btn-solid {
     @apply btn dark:border-slate-900 dark:hover:border-slate-950 dark:bg-slate-900 dark:hover:bg-slate-950;
   }
-  .btn-secondary {
-    @apply btn dark:border-slate-900 dark:hover:border-slate-950 dark:bg-slate-800 dark:hover:bg-slate-900;
+  .btn-outline {
+    @apply btn dark:border-slate-900 dark:bg-slate-800 dark:hover:bg-slate-900;
+  }
+
+  .tooltip {
+    @apply absolute rounded bg-slate-800 border border-slate-950 p-2 text-xs text-white scale-0 group-hover:scale-100 md:group-hover:scale-0 transition-all;
   }
 }
 

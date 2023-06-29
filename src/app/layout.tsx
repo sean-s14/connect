@@ -20,7 +20,9 @@ export default function RootLayout({
       <body className={inter.className}>
         <AuthProvider>
           <Navbar />
-          <main className="pl-40 min-h-screen bg-slate-900">{children}</main>
+          <main className="pt-20 sm:pt-0 pl-0 sm:pl-20 md:pl-40 min-h-screen bg-slate-900">
+            {children}
+          </main>
         </AuthProvider>
       </body>
     </html>
