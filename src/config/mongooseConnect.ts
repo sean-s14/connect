@@ -1,6 +1,6 @@
 import mongoose, { ConnectOptions } from "mongoose";
 
-const URI = process.env.MONGO_URI;
+const URI = process.env.MONGODB_URI;
 
 let cached = global.mongoose;
 
@@ -8,7 +8,7 @@ if (!cached) {
   cached = global.mongoose = { conn: null, promise: null };
 }
 
-export default async function mongoConnect() {
+export default async function mongooseConnect() {
   if (!URI) {
     throw new Error(
       "Please define the URI environment variable inside .env.local"

@@ -84,7 +84,11 @@ export default function MongoDBAdapter(
     ...oldMongoDBAdapter(client, options),
     async createUser(data: any) {
       // generate a random username and add it to the data object
+      data._id = structuredClone(data.id);
       data.username = generateUsername("", 3, 20);
+      data.private = false;
+      data.createdAt = new Date();
+      data.updatedAt = new Date();
       const user = to(data);
       await (await db).U.insertOne(user);
       return from(user);

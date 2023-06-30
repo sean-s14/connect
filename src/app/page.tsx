@@ -3,7 +3,7 @@ import {
   HandThumbUpIcon,
   ChatBubbleBottomCenterIcon,
 } from "@heroicons/react/24/outline";
-import feedTestData from "./data.posts.json";
+import feedTestData from "@/app/data.posts.json";
 
 export default function Home() {
   return (
@@ -42,7 +42,7 @@ export default function Home() {
 
             <hr className="my-2 border-slate-500" />
             {Array.isArray(comments) && comments.length > 0 ? (
-              <Link className="text-center" href={`/${handle}/${id}`}>
+              <Link className="text-center" href={`/profile/${handle}/${id}`}>
                 View Comments
               </Link>
             ) : (

@@ -1,4 +1,4 @@
-import data from "../../data.posts.json";
+import data from "@/app/data.posts.json";
 import {
   HandThumbUpIcon,
   ChatBubbleBottomCenterIcon,

@@ -9,8 +9,6 @@
 ## Pages
 
 - News Feed (Home)
-- Authentication
-- User Profile
 - Error
 - 404
 
@@ -19,7 +17,6 @@
 ## Components
 
 - Navbar
-  - Add responsivity
   - Search Bar
   - Tabs to switch between 'Explore' and 'Following'
 - Pagination
@@ -36,8 +33,6 @@
 - Authentication
   - Twitter
   - Auth0
-  - Profile Page (Public)
-  - Profile Management (Private)
   - Settings (Private)
     - Privacy
     - Security
@@ -49,5 +44,6 @@
 # Schemas
 
 - User
+  - Verified
   - Notifications
 - Notification

@@ -4,8 +4,10 @@ import GoogleProvider from "next-auth/providers/google";
 import EmailProvider from "next-auth/providers/email";
 import MongoDBAdapter from "@/config/mongoDBAdapter";
 import mongoClientPromise from "@/config/mongoClient";
+import { Session } from "next-auth";
+import { AdapterUser } from "next-auth/adapters";
 
-const handler = NextAuth({
+export const authOptions = {
   adapter: MongoDBAdapter(mongoClientPromise),
   providers: [
     GoogleProvider({
@@ -29,7 +31,13 @@ const handler = NextAuth({
     }),
   ],
   callbacks: {
-    session: async ({ session, user }) => {
+    session: async ({
+      session,
+      user,
+    }: {
+      session: Session;
+      user: AdapterUser;
+    }) => {
       if (session?.user) {
         session.user.id = user.id;
         session.user.username = user.username;
@@ -37,6 +45,8 @@ const handler = NextAuth({
       return session;
     },
   },
-});
+};
+
+const handler = NextAuth(authOptions);
 
 export { handler as GET, handler as POST };
