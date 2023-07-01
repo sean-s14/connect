@@ -69,7 +69,7 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="h-20 sm:min-h-screen w-full sm:w-20 md:w-40 bg-slate-800 fixed backdrop-blur-sm flex sm:flex-col items-center justify-between sm:py-6 px-8 sm:px-0">
+    <nav className="h-20 sm:min-h-screen w-full sm:w-20 md:w-40 bg-slate-800 fixed backdrop-blur-sm flex sm:flex-col items-center justify-between sm:py-6 px-8 sm:px-0 z-50">
       {/* MOBILE < 640px */}
       <div className="w-full flex sm:hidden items-center justify-between px-8">
         {/* Menu Toggle */}
@@ -95,9 +95,9 @@ export default function Navbar() {
 
         {/* Navigation */}
         <div
-          className={`border-t border-slate-300/50 py-4 absolute top-20 right-full translate-x-${
-            showMenu ? "full" : 0
-          } transition-all duration-700 w-full h-screen bg-slate-800`}
+          className={`py-4 absolute top-20 right-${
+            showMenu ? 0 : "full"
+          }  transition-all duration-700 w-full h-screen bg-slate-800`}
         >
           {/* Transition Opacity Container */}
           <div

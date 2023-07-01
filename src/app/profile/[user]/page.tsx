@@ -3,14 +3,23 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { IUser } from "@/constants/schemas/user";
+import { IPost } from "@/constants/schemas/post";
 import Image from "next/image";
 import Link from "next/link";
 import { IoCalendar } from "react-icons/io5";
 import { FiEdit } from "react-icons/fi";
+import Post from "@/components/post";
+
+interface IPostWithId extends IPost {
+  _id: string;
+}
+interface IUserWithPosts extends Omit<IUser, "posts"> {
+  posts: IPostWithId[];
+}
 
 export default function UserPage(props: { params: { user: string } }) {
   const { data: session } = useSession();
-  const [user, setUser] = useState<IUser | null>(null);
+  const [user, setUser] = useState<IUserWithPosts | null>(null);
   const [loading, setLoading] = useState(true); // loading state for fetching user data
 
   useEffect(() => {
@@ -52,7 +61,7 @@ export default function UserPage(props: { params: { user: string } }) {
       ) : (
         <div className="w-[120px] h-[120px]"></div>
       )}
-      <div className="flex flex-col gap-2 mt-5 w-full relative">
+      <div className="flex flex-col gap-2 mt-5 w-full max-w-2xl self-center relative">
         <div className="text-xl font-bold">{session?.user?.name}</div>
         {session?.user?.username && (
           <div className="text-md font-medium text-slate-500">
@@ -82,6 +91,27 @@ export default function UserPage(props: { params: { user: string } }) {
           </Link>
         )}
       </div>
+
+      {/* Post Container */}
+      <div className="w-full max-w-2xl self-center items-center mt-10 flex flex-col gap-6">
+        {user?.posts &&
+          user?.posts.length > 0 &&
+          user?.posts.map(
+            ({ _id, content, createdAt, likes, children }, index) => (
+              <Post
+                key={index}
+                name={user?.name}
+                username={user.username}
+                content={content}
+                createdAt={createdAt}
+                likes={likes?.length || 0}
+                replies={children}
+                _id={_id}
+              />
+            )
+          )}
+      </div>
+      {/* TODO: Include pagination for posts */}
     </div>
   );
 }

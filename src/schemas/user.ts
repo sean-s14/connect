@@ -17,6 +17,6 @@ const userSchema = new Schema<IUser>({
   updatedAt: { type: Date, default: () => Date.now() },
 });
 
-const User = models.Users || model<IUser>("Users", userSchema);
+const User = models.User || model<IUser>("User", userSchema);
 
 export default User;

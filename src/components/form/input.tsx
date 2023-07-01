@@ -35,7 +35,7 @@ export default function Input(props: InputProps) {
       )}
       {multiline ? (
         <textarea
-          className="rounded bg-slate-950 outline-slate-600 outline outline-2 focus:outline-slate-300 text-slate-200 py-1 px-2"
+          className="rounded bg-slate-900 outline-slate-600 outline outline-2 focus:outline-slate-300 text-slate-200 py-1 px-2"
           id={id}
           name={name}
           required={required}
@@ -44,7 +44,7 @@ export default function Input(props: InputProps) {
         ></textarea>
       ) : (
         <input
-          className="rounded bg-slate-950 outline-slate-600 outline outline-2 focus:outline-slate-300 text-slate-200 py-1 px-2"
+          className="rounded bg-slate-900 outline-slate-600 outline outline-2 focus:outline-slate-300 text-slate-200 py-1 px-2"
           onChange={(e) => onChange(e)}
           type={type}
           value={value}

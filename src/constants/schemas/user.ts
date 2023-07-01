@@ -1,7 +1,9 @@
+import { Types } from "mongoose";
 export type Gender = "male" | "female";
 export const GENDERS: Gender[] = ["male", "female"];
 
 export type UserFields =
+  | "_id"
   | "name"
   | "username"
   | "email"
@@ -12,9 +14,11 @@ export type UserFields =
   | "bio"
   | "private"
   | "createdAt"
-  | "updatedAt";
+  | "updatedAt"
+  | "posts";
 
 export interface IUser {
+  _id?: string;
   name: string;
   username: string;
   email: string;
@@ -26,4 +30,5 @@ export interface IUser {
   private: boolean;
   createdAt: Date;
   updatedAt: Date;
+  posts?: Types.ObjectId[];
 }
