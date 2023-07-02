@@ -30,20 +30,13 @@ export default function Home() {
       {Array.isArray(feed) &&
         feed.map(
           (
-            {
-              author: { username, name },
-              content,
-              createdAt,
-              likes,
-              children: comments,
-              _id,
-            },
+            { author, content, createdAt, likes, children: comments, _id },
             index
           ) => (
             <Post
               key={index}
-              username={username}
-              name={name}
+              username={author?.username || ""}
+              name={author?.name || ""}
               content={content}
               createdAt={createdAt}
               likes={likes?.length || 0}

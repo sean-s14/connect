@@ -115,7 +115,7 @@ export default function Navbar() {
                   key={href}
                   className="flex gap-4 items-center py-2 px-4 transition-colors duration-300 hover:bg-slate-900 bg-slate-700 w-full max-w-[95%] rounded-lg group relative"
                 >
-                  <Icon className="h-10 w-10" />
+                  <Icon width={10} height={10} className="h-10 w-10" />
                   <span className="text-xl">{text}</span>
                 </Link>
               ))}
@@ -186,7 +186,7 @@ export default function Navbar() {
               key={href}
               className="flex gap-2 items-center p-2 transition-colors duration-300 hover:bg-slate-700 w-[100%] max-w-fit rounded-full group relative"
             >
-              <Icon className="h-8 w-8" />
+              <Icon width={8} height={8} className="h-8 w-8" />
               <span className="tooltip left-16">{text}</span> {/* Tooltip */}
             </Link>
           ))}
@@ -257,7 +257,7 @@ export default function Navbar() {
               key={href}
               className="flex gap-2 items-center p-2 transition-colors duration-300 hover:bg-slate-700 w-[100%] max-w-[100%] rounded-none group relative"
             >
-              <Icon className="h-6 w-6" />
+              <Icon width={6} height={6} className="h-6 w-6" />
               <span className="text-lg">{text}</span>
             </Link>
           ))}
