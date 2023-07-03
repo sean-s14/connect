@@ -10,11 +10,13 @@ export async function GET(request: Request) {
     const posts = await Post.find(
       {},
       "_id author content createdAt likes parent children"
-    ).populate({
-      path: "author",
-      select: "name profileImage username",
-      model: User,
-    });
+    )
+      .populate({
+        path: "author",
+        select: "name profileImage username",
+        model: User,
+      })
+      .sort({ createdAt: -1 });
     // TODO: Remove 'likes' from post fields and replace it with the number of likes
 
     return NextResponse.json({ posts });

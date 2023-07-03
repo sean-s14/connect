@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import mongooseConnect from "@/config/mongooseConnect";
 import User from "@/schemas/user";
 import Post from "@/schemas/post";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 // import { faker } from "@faker-js/faker";
 
 export async function GET(
@@ -25,6 +27,27 @@ export async function GET(
 }
 
 // TODO: Implement POST, PATCH, and DELETE requests
+
+export async function POST(request: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    await mongooseConnect();
+    const body = await request.json();
+
+    const author = session?.user?.id;
+
+    if (!author) {
+      return NextResponse.json({ err: "Not authorized!" }, { status: 401 });
+    }
+
+    const post = await Post.create({ ...body, author });
+
+    return NextResponse.json({ post });
+  } catch (error) {
+    console.log(error);
+    return NextResponse.json({ err: "Post request failed!" }, { status: 500 });
+  }
+}
 
 // async function createPostsForUser(userId: string) {
 //   const numPosts = Math.floor(Math.random() * 3) + 1; // Generate a random number between 1 and 3
