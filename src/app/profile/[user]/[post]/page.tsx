@@ -9,6 +9,7 @@ export default function Post({
 }: {
   params: { user: string; post: string };
 }) {
+  // TODO: Fetch post data from server
   const post = data.find((post) => post.id.toString() === params.post);
 
   return (

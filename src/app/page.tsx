@@ -59,7 +59,7 @@ export default function Home() {
           {status === "authenticated" && (
             <form
               onSubmit={handleCreatePost}
-              className="bg-slate-800 border-solid border-2 border-slate-700 rounded-xl w-full p-3 flex gap-4 items-center justify-around"
+              className="bg-slate-800 border-solid border-2 border-slate-700 rounded-xl w-full max-w-2xl p-3 flex gap-4 items-center justify-around"
             >
               <Input
                 placeholder="What's on your mind..."
@@ -87,13 +87,14 @@ export default function Home() {
               ) => (
                 <Post
                   key={index}
-                  username={author?.username || ""}
-                  name={author?.name || ""}
+                  username={author?.username}
+                  name={author?.name}
                   content={content}
                   createdAt={createdAt}
                   likes={likes?.length || 0}
                   replies={comments}
                   _id={_id}
+                  containerClassName="max-w-2xl"
                 />
               )
             )}

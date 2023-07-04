@@ -18,7 +18,7 @@ export async function GET(
 
     // TODO: Include pagination for posts
     const posts = await Post.find(
-      { author: user._id },
+      { author: user._id, isDeleted: false },
       "_id content createdAt likes children"
     );
 

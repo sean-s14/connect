@@ -8,7 +8,7 @@ export async function GET(request: Request) {
     await mongooseConnect();
 
     const posts = await Post.find(
-      {},
+      { isDeleted: false },
       "_id author content createdAt likes parent children"
     )
       .populate({

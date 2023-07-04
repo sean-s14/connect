@@ -4,6 +4,7 @@ import User from "@/schemas/user";
 import Post from "@/schemas/post";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { Types } from "mongoose";
 // import { faker } from "@faker-js/faker";
 
 export async function GET(
@@ -19,14 +20,16 @@ export async function GET(
       User
     );
 
+    if (post.isDeleted) {
+      post.content = "This post has been deleted";
+    }
+
     return NextResponse.json({ post });
   } catch (error) {
     console.log(error);
     return NextResponse.json({ err: "Get request failed!" }, { status: 500 });
   }
 }
-
-// TODO: Implement POST, PATCH, and DELETE requests
 
 export async function POST(request: Request) {
   try {
@@ -35,7 +38,6 @@ export async function POST(request: Request) {
     const body = await request.json();
 
     const author = session?.user?.id;
-
     if (!author) {
       return NextResponse.json({ err: "Not authorized!" }, { status: 401 });
     }
@@ -46,6 +48,81 @@ export async function POST(request: Request) {
   } catch (error) {
     console.log(error);
     return NextResponse.json({ err: "Post request failed!" }, { status: 500 });
+  }
+}
+
+export async function PATCH(request: Request) {
+  const url = new URL(request.url);
+  const params = Object.fromEntries(url.searchParams.entries());
+
+  try {
+    const session = await getServerSession(authOptions);
+    await mongooseConnect();
+    let body = await request.json();
+    let filter = { _id: params?._id };
+    let options = { new: true };
+
+    const author = session?.user?.id;
+    if (!author) {
+      return NextResponse.json({ err: "Not authorized!" }, { status: 401 });
+    }
+
+    // If parameters containes like=true, then retrieve the post
+    // Check if the user has already liked the post
+    // If yes, then add the user to the likes array
+    // If no, then remove the user from the likes array
+    // Finally, save and return the post
+    if (params?.like === "true") {
+      const post = await Post.findOne({ _id: params?._id });
+
+      if (post?.likes?.includes(author)) {
+        post.likes = post.likes.filter(
+          (_id: Types.ObjectId) => _id.toString() !== author
+        );
+        post.save();
+      } else {
+        post.likes.push(author);
+        post.save();
+      }
+
+      return NextResponse.json({ post });
+    }
+
+    const post = await Post.findOneAndUpdate(filter, body, options);
+
+    return NextResponse.json({ post });
+  } catch (error) {
+    console.log(error);
+    return NextResponse.json(
+      { err: "Update request failed!" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: Request) {
+  const url = new URL(request.url);
+  const params = Object.fromEntries(url.searchParams.entries());
+  try {
+    const session = await getServerSession(authOptions);
+    await mongooseConnect();
+
+    const author = session?.user?.id;
+    if (!author) {
+      return NextResponse.json({ err: "Not authorized!" }, { status: 401 });
+    }
+
+    let filter = { _id: params?._id, author };
+    let body = { isDeleted: true, deletedAt: new Date() };
+    const post = await Post.findOneAndUpdate(filter, body);
+
+    return NextResponse.json({ msg: "Delete request successful!" });
+  } catch (error) {
+    console.log(error);
+    return NextResponse.json(
+      { err: "Delete request failed!" },
+      { status: 500 }
+    );
   }
 }
 
