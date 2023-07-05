@@ -5,23 +5,58 @@ import Post from "@/schemas/post";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { Types } from "mongoose";
+import { IPost } from "@/constants/schemas/post";
 // import { faker } from "@faker-js/faker";
 
-export async function GET(
-  request: Request,
-  { params }: { params: { [key: string]: string } }
-) {
+export async function GET(request: Request) {
   try {
     await mongooseConnect();
 
-    const post = await Post.findOne(params).populate(
-      "author",
-      "name profileImage username",
-      User
-    );
+    const url = new URL(request.url);
+    const params = Object.fromEntries(url.searchParams.entries());
+
+    const post = await Post.findOne(params)
+      .populate("author", "name profileImage username", User)
+      .populate({
+        path: "parent",
+        select: "_id author content isDeleted likes children createdAt",
+        model: Post,
+        populate: {
+          path: "author",
+          select: "name profileImage username",
+          model: User,
+        },
+      })
+      .sort({ createdAt: -1 })
+      .populate({
+        path: "children",
+        select: "_id author content likes children createdAt",
+        populate: {
+          path: "author",
+          select: "name profileImage username",
+          model: User,
+        },
+        match: { isDeleted: false },
+      })
+      .sort({ createdAt: -1 });
+
+    // TODO: Replace likes with the number of likes
+    // post.likes = post.likes.length;
+    // TODO: Replace all childrens likes with the number of likes for each child
+    // post.children = post.children.map((child: IPost) => {
+    //   if (child?.likes) {
+    //     // @ts-ignore
+    //     child.likes = child.likes.length;
+    //   }
+    //   return child;
+    // });
 
     if (post.isDeleted) {
       post.content = "This post has been deleted";
+    }
+
+    if (post.parent?.isDeleted) {
+      post.parent.content = "This post has been deleted";
     }
 
     return NextResponse.json({ post });
@@ -42,7 +77,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ err: "Not authorized!" }, { status: 401 });
     }
 
+    const url = new URL(request.url);
+    const params = Object.fromEntries(url.searchParams.entries());
+
+    if (params?.parentId) {
+      body.parent = [params.parentId];
+    }
+
     const post = await Post.create({ ...body, author });
+
+    if (params?.parentId) {
+      const parentPost = await Post.findOneAndUpdate(
+        { _id: params.parentId },
+        { $push: { children: post._id } }
+      );
+    }
 
     return NextResponse.json({ post });
   } catch (error) {

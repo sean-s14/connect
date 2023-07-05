@@ -75,7 +75,7 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="h-20 sm:min-h-screen w-full sm:w-20 md:w-40 bg-slate-800 fixed backdrop-blur-sm flex sm:flex-col items-center justify-between sm:py-6 px-8 sm:px-0 z-50">
+    <nav className="h-20 sm:min-h-screen w-full sm:w-20 md:w-40 bg-slate-800 fixed backdrop-blur-sm flex sm:flex-col items-center justify-between sm:py-6 px-8 sm:px-0 z-40">
       {/* MOBILE < 640px */}
       <div className="w-full flex sm:hidden items-center justify-between px-8">
         {/* Menu Toggle */}
@@ -119,7 +119,9 @@ export default function Navbar() {
                 <Link
                   href={href}
                   key={href}
-                  className="flex gap-4 items-center py-2 px-4 transition-colors duration-300 hover:bg-slate-900 bg-slate-700 w-full max-w-[95%] rounded-lg group relative"
+                  className={`flex gap-4 items-center py-2 px-4 transition-colors duration-300 hover:bg-slate-600 bg-slate-700 w-full max-w-[95%] rounded-lg group relative ${
+                    pathname === href && "bg-slate-900"
+                  }`}
                 >
                   <Icon width={10} height={10} className="h-10 w-10" />
                   <span className="text-xl">{text}</span>
@@ -190,7 +192,9 @@ export default function Navbar() {
             <Link
               href={href}
               key={href}
-              className="flex gap-2 items-center p-2 transition-colors duration-300 hover:bg-slate-700 w-[100%] max-w-fit rounded-full group relative"
+              className={`flex gap-2 items-center p-3 transition-colors duration-300 hover:bg-slate-700 w-[100%] max-w-fit rounded-full group relative ${
+                pathname === href && "bg-slate-900"
+              }`}
             >
               <Icon width={8} height={8} className="h-8 w-8" />
               <span className="tooltip left-16">{text}</span> {/* Tooltip */}
@@ -261,7 +265,9 @@ export default function Navbar() {
             <Link
               href={href}
               key={href}
-              className="flex gap-2 items-center p-2 transition-colors duration-300 hover:bg-slate-700 w-[100%] max-w-[100%] rounded-none group relative"
+              className={`flex gap-2 items-center p-2 transition-colors duration-300 hover:bg-slate-700 w-[100%] max-w-[100%] rounded-lg group relative ${
+                pathname === href && "bg-slate-900"
+              }`}
             >
               <Icon width={6} height={6} className="h-6 w-6" />
               <span className="text-lg">{text}</span>

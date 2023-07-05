@@ -4,14 +4,16 @@ import { useState, useEffect } from "react";
 import { IPost } from "@/constants/schemas/post";
 import { IUser } from "@/constants/schemas/user";
 import Post from "@/components/post";
+import { ParentPost } from "@/components/post";
 import Input from "@/components/form/input";
 import { AiOutlineSend } from "react-icons/ai";
 import { useSession } from "next-auth/react";
 import Spinner from "@/components/loaders/spinner";
 
-interface IPostWithAuthor extends Omit<IPost, "author"> {
+interface IPostWithAuthor extends Omit<IPost, "author" | "parent"> {
   _id: string;
   author: IUser;
+  parent?: ParentPost;
 }
 
 export default function Home() {
@@ -26,6 +28,7 @@ export default function Home() {
       .then((res) => res.json())
       .then((data) => {
         const { posts } = data;
+        console.log("Posts:", posts);
         setFeed(posts);
       })
       .catch((err) => console.log(err));
@@ -86,7 +89,15 @@ export default function Home() {
           {Array.isArray(feed) &&
             feed.map(
               (
-                { author, content, createdAt, likes, children: comments, _id },
+                {
+                  author,
+                  content,
+                  createdAt,
+                  likes,
+                  parent,
+                  children: comments,
+                  _id,
+                },
                 index
               ) => (
                 <Post
@@ -96,6 +107,7 @@ export default function Home() {
                   content={content}
                   createdAt={createdAt}
                   likes={likes?.length || 0}
+                  parent={parent}
                   replies={comments}
                   _id={_id}
                   containerClassName="max-w-2xl"

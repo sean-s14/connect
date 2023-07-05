@@ -20,7 +20,18 @@ export async function GET(
     const posts = await Post.find(
       { author: user._id, isDeleted: false },
       "_id content createdAt likes children"
-    );
+    )
+      .sort({ createdAt: -1 })
+      .populate({
+        path: "parent",
+        select: "_id author content isDeleted likes children createdAt",
+        model: Post,
+        populate: {
+          path: "author",
+          select: "name profileImage username",
+          model: User,
+        },
+      });
 
     // TODO: Swap 'likes' from each post with the number of likes
 

@@ -2,8 +2,6 @@
 
 ## Urgent
 
-- Signing out should redirect user to home page
-
 ## Issues
 
 - 404/not-found page refreshes every 3 seconds in development.
@@ -31,7 +29,6 @@
 
 ## Features
 
-- Post Creation
 - Notifications
 - Authentication
   - Twitter

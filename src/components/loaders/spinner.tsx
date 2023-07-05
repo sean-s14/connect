@@ -70,12 +70,17 @@ export default function Spinner(props: { style?: {} }) {
           height: 25px;
           width: 25px;
           border: 1px solid #ffffff;
-          border-right-color: transparent;
-          border-radius: 50%;
           display: flex;
         }
       `}</style>
-      <span className="loading-spinner" style={props.style}></span>
+      <span
+        className="loading-spinner"
+        style={{
+          borderRadius: "50%",
+          borderRightColor: "transparent",
+          ...props.style,
+        }}
+      ></span>
     </>
   );
 }

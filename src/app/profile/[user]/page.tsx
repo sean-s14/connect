@@ -9,12 +9,14 @@ import Link from "next/link";
 import { IoCalendar } from "react-icons/io5";
 import { FiEdit } from "react-icons/fi";
 import Post from "@/components/post";
+import { ParentPost } from "@/components/post";
 
-interface IPostWithId extends IPost {
+interface IPostWithIdAndParent extends Omit<IPost, "parent"> {
   _id: string;
+  parent?: ParentPost;
 }
 interface IUserWithPosts extends Omit<IUser, "posts"> {
-  posts: IPostWithId[];
+  posts: IPostWithIdAndParent[];
 }
 
 export default function UserPage(props: { params: { user: string } }) {
@@ -97,7 +99,7 @@ export default function UserPage(props: { params: { user: string } }) {
         {user?.posts &&
           user?.posts.length > 0 &&
           user?.posts.map(
-            ({ _id, content, createdAt, likes, children }, index) => (
+            ({ _id, content, createdAt, likes, children, parent }, index) => (
               <Post
                 key={index}
                 name={user?.name}
@@ -105,6 +107,7 @@ export default function UserPage(props: { params: { user: string } }) {
                 content={content}
                 createdAt={createdAt}
                 likes={likes?.length || 0}
+                parent={parent}
                 replies={children}
                 _id={_id}
               />
