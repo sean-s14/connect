@@ -68,6 +68,12 @@ export default function Navbar() {
     );
   }
 
+  function handleSignOut() {
+    signOut({
+      callbackUrl: `${window.location.origin}`,
+    });
+  }
+
   return (
     <nav className="h-20 sm:min-h-screen w-full sm:w-20 md:w-40 bg-slate-800 fixed backdrop-blur-sm flex sm:flex-col items-center justify-between sm:py-6 px-8 sm:px-0 z-50">
       {/* MOBILE < 640px */}
@@ -128,7 +134,7 @@ export default function Navbar() {
               {status === "authenticated" ? (
                 <button
                   className="bg-slate-700 rounded-lg p-2 w-52 flex justify-center items-center gap-4"
-                  onClick={() => signOut()}
+                  onClick={handleSignOut}
                 >
                   <FiLogOut className="h-10 w-10" />
                   <span className="text-xl">Logout</span>
@@ -201,7 +207,7 @@ export default function Navbar() {
           {status === "authenticated" ? (
             <button
               className="hover:bg-slate-700 p-3 rounded-full text-center flex gap-1 justify-around items-center transition-colors group relative"
-              onClick={() => signOut()}
+              onClick={handleSignOut}
             >
               <FiLogOut className="h-8 w-8" />
               <span className="tooltip left-16">Logout</span> {/* Tooltip */}
@@ -272,7 +278,7 @@ export default function Navbar() {
           {status === "authenticated" ? (
             <button
               className="p-2 btn-outline w-32 text-center flex gap-1 justify-around items-center transition-colors"
-              onClick={() => signOut()}
+              onClick={handleSignOut}
             >
               <FiLogOut className="h-5 w-5" />
               <span className="">Logout</span>

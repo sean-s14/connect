@@ -7,7 +7,7 @@ import Post from "@/components/post";
 import Input from "@/components/form/input";
 import { AiOutlineSend } from "react-icons/ai";
 import { useSession } from "next-auth/react";
-import Spinner from "@/components/loaders/spinner/spinner";
+import Spinner from "@/components/loaders/spinner";
 
 interface IPostWithAuthor extends Omit<IPost, "author"> {
   _id: string;
@@ -51,9 +51,13 @@ export default function Home() {
   }
 
   return (
-    <main className="py-8 px-10 flex flex-col gap-10 items-center">
+    <main
+      className={`py-8 px-10 flex flex-col gap-10 items-center min-h-screen ${
+        status === "loading" && "justify-center"
+      }`}
+    >
       {status === "loading" ? (
-        <Spinner style={{ width: 60, height: 60 }} />
+        <Spinner style={{ width: 80, height: 80, borderWidth: 4 }} />
       ) : (
         <>
           {status === "authenticated" && (

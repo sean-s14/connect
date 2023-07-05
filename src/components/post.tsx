@@ -9,6 +9,7 @@ import {
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import Spinner from "@/components/loaders/spinner";
 
 export default function Post({
   name,
@@ -30,10 +31,12 @@ export default function Post({
   containerClassName?: string;
 }) {
   const { data: session, status } = useSession();
-  const [liked, setLiked] = useState(false);
+  const [liked, setLiked] = useState(0);
+  const [likedLoading, setLikedLoading] = useState(false);
   const [deleted, setDeleted] = useState(false);
 
   function handleLike() {
+    setLikedLoading(true);
     fetch(`/api/posts?_id=${_id}&like=true`, {
       method: "PATCH",
       headers: {
@@ -45,12 +48,15 @@ export default function Post({
       .then((data) => {
         const { post } = data;
         if (post?.likes?.length > likes) {
-          setLiked(true);
+          setLiked(1);
+        } else if (post?.likes?.length === likes) {
+          setLiked(0);
         } else {
-          setLiked(false);
+          setLiked(-1);
         }
       })
-      .catch((err) => console.log(err));
+      .catch((err) => console.log(err))
+      .finally(() => setLikedLoading(false));
   }
 
   function handleDelete() {
@@ -75,9 +81,10 @@ export default function Post({
         deleted && "hidden"
       }`}
     >
+      {/* Delete Button */}
       {session?.user?.username === username && (
         <button
-          className="cursor-pointer p-0.5 absolute right-5 top-5 rounded border border-red-400 hover:bg-red-400/30"
+          className="cursor-pointer p-0.5 absolute right-5 top-5 rounded border border-red-400 hover:bg-red-400/30 transition-colors"
           onClick={handleDelete}
         >
           <XMarkIcon className="h-7 w-7 text-red-400" />
@@ -100,7 +107,7 @@ export default function Post({
       {/* Likes & Comments */}
       <div className="flex justify-start gap-2 mt-3">
         <button
-          className={`mt-2 py-1 px-4 rounded-3xl flex gap-3 bg-slate-900 ${
+          className={`mt-2 py-1 px-4 rounded-3xl flex gap-3 items-center bg-slate-900 ${
             status === "authenticated"
               ? "hover:bg-slate-950 cursor-pointer"
               : "cursor-default"
@@ -108,7 +115,11 @@ export default function Post({
           onClick={handleLike}
           disabled={status !== "authenticated"}
         >
-          {likes + (liked ? 1 : 0)}
+          {likedLoading ? (
+            <Spinner style={{ height: 15, width: 15, borderWidth: 3 }} />
+          ) : (
+            <span>{likes + liked}</span>
+          )}
           <HandThumbUpIcon className="h-6 w-6" />
         </button>
         <div className="cursor-pointer mt-2 py-1 px-4 rounded-3xl flex gap-3 bg-slate-900 hover:bg-slate-950 transition-colors ease-in-out duration-300 max-w-fit">

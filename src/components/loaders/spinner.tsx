@@ -69,10 +69,10 @@ export default function Spinner(props: { style?: {} }) {
           animation-timing-function: linear;
           height: 25px;
           width: 25px;
-          border: 10px solid #ffffff;
+          border: 1px solid #ffffff;
           border-right-color: transparent;
           border-radius: 50%;
-          display: inline-block;
+          display: flex;
         }
       `}</style>
       <span className="loading-spinner" style={props.style}></span>
