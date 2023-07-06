@@ -25,11 +25,12 @@ export type ParentPost = {
   author: { name: string; username: string; _id: string };
   content: string;
   createdAt: Date;
-  likes: Types.ObjectId[];
-  children: Types.ObjectId[];
+  likes: number;
+  children: number;
   _id: string;
 };
 
+// TODO: Add option 'withReplies' to fetch posts with replies and display them
 export default function Post({
   name,
   username,
@@ -37,7 +38,7 @@ export default function Post({
   createdAt,
   likes = 0,
   parent,
-  replies,
+  replies = 0,
   _id,
   containerClassName = "",
 }: {
@@ -47,7 +48,7 @@ export default function Post({
   createdAt: Date;
   likes: number;
   parent?: ParentPost;
-  replies?: Types.ObjectId[];
+  replies?: number;
   _id: string;
   containerClassName?: string;
 }) {
@@ -205,9 +206,11 @@ export default function Post({
       <p>{content}</p>
 
       {/* Parent */}
-      {/* {parent && <Link href={`/profile/${parent?.author}/`}>{parent?.content}</Link>} */}
       {parent && (
-        <div className="border-2 border-slate-600 rounded-xl ml-8 p-2 flex flex-col gap-2">
+        <Link
+          href={`/profile/${parent?.author.username}/${parent?._id}`}
+          className="border-2 border-slate-600 rounded-xl ml-8 p-2 flex flex-col gap-2"
+        >
           <div className="flex items-center gap-2">
             <span className="text-sm text-slate-300">
               {parent?.author?.name}
@@ -225,15 +228,15 @@ export default function Post({
           {/* Likes and replies */}
           <div className="flex gap-2">
             <div className="py-1 px-3 rounded-3xl flex gap-3 items-center bg-slate-900 max-w-fit">
-              <span className="text-sm">{parent?.likes?.length || 0}</span>
+              <span className="text-sm">{parent?.likes || 0}</span>
               <HandThumbUpIcon className="h-4 w-4" />
             </div>
             <div className="py-1 px-3 rounded-3xl flex gap-3 items-center bg-slate-900 max-w-fit">
-              <span className="text-sm">{parent?.children?.length || 0}</span>
+              <span className="text-sm">{parent?.children || 0}</span>
               <ChatBubbleBottomCenterIcon className="h-4 w-4" />
             </div>
           </div>
-        </div>
+        </Link>
       )}
 
       {/* Likes & Comments & Reply */}
@@ -256,7 +259,7 @@ export default function Post({
             <HandThumbUpIcon className="h-6 w-6" />
           </button>
           <button className="cursor-pointer mt-2 py-1 px-4 rounded-3xl flex items-center gap-3 bg-slate-900 hover:bg-slate-950 transition-colors ease-in-out duration-300 max-w-fit">
-            {replies?.length}
+            {replies}
             <ChatBubbleBottomCenterIcon className="h-6 w-6" />
           </button>
         </div>
@@ -272,7 +275,7 @@ export default function Post({
       </div>
 
       <hr className="my-2 border-slate-500" />
-      {Array.isArray(replies) && replies.length > 0 ? (
+      {replies > 0 ? (
         <Link className="text-center" href={`/profile/${username}/${_id}`}>
           View Comments
         </Link>

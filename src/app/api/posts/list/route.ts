@@ -17,9 +17,7 @@ export async function GET(request: Request) {
         select: "name profileImage username",
         model: User,
       })
-      .populate("parent", "author content likes children createdAt", Post, {
-        isDeleted: false,
-      })
+      .populate("parent", "author content likes children createdAt", Post)
       .populate({
         path: "parent",
         populate: {
@@ -28,12 +26,21 @@ export async function GET(request: Request) {
           model: User,
         },
       })
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
-    // TODO: Remove 'likes' from post fields and replace it with the number of likes
-    // posts.forEach((post) => {
-    //   post.likes = post.likes.length;
-    // });
+    // Remove 'likes' from post fields and replace it with the number of likes
+    posts.forEach((post) => {
+      post.likes = post.likes.length;
+      post.children = post.children.length || 0;
+      if (post.parent) {
+        post.parent.likes = post.parent.likes.length;
+        post.parent.children = post.parent.children.length;
+        if (post.parent.isDeleted) {
+          post.parent.content = "deleted";
+        }
+      }
+    });
 
     return NextResponse.json({ posts });
   } catch (error) {

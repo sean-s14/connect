@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { IPost } from "@/constants/schemas/post";
-import { IUser } from "@/constants/schemas/user";
 import Post from "@/components/post";
 import { ParentPost } from "@/components/post";
 import Input from "@/components/form/input";
@@ -10,16 +9,29 @@ import { AiOutlineSend } from "react-icons/ai";
 import { useSession } from "next-auth/react";
 import Spinner from "@/components/loaders/spinner";
 
-interface IPostWithAuthor extends Omit<IPost, "author" | "parent"> {
+type Author = {
   _id: string;
-  author: IUser;
+  name: string;
+  username: string;
+};
+
+type OmmittedPostFields = "updatedAt" | "__v" | "deletedAt";
+
+type PostType = Omit<
+  IPost,
+  "updatedAt" | "__v" | "deletedAt" | "likes" | "parent" | "children" | "author"
+> & {
+  _id: string;
+  author: Author;
+  likes: number;
   parent?: ParentPost;
-}
+  children: number;
+};
 
 export default function Home() {
   const { status } = useSession();
   // TODO: cache feed with option to refresh
-  const [feed, setFeed] = useState<IPostWithAuthor[]>([]);
+  const [feed, setFeed] = useState<PostType[]>([]);
   const [newPost, setNewPost] = useState("");
 
   useEffect(() => {
@@ -95,7 +107,7 @@ export default function Home() {
                   createdAt,
                   likes,
                   parent,
-                  children: comments,
+                  children: replies,
                   _id,
                 },
                 index
@@ -106,9 +118,9 @@ export default function Home() {
                   name={author?.name}
                   content={content}
                   createdAt={createdAt}
-                  likes={likes?.length || 0}
+                  likes={likes || 0}
                   parent={parent}
-                  replies={comments}
+                  replies={replies}
                   _id={_id}
                   containerClassName="max-w-2xl"
                 />

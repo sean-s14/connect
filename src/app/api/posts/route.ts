@@ -5,7 +5,6 @@ import Post from "@/schemas/post";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { Types } from "mongoose";
-import { IPost } from "@/constants/schemas/post";
 // import { faker } from "@faker-js/faker";
 
 export async function GET(request: Request) {
@@ -15,7 +14,8 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const params = Object.fromEntries(url.searchParams.entries());
 
-    const post = await Post.findOne(params)
+    const post: any = await Post.findOne(params)
+      .select("_id author content isDeleted likes parent children createdAt")
       .populate("author", "name profileImage username", User)
       .populate({
         path: "parent",
@@ -27,37 +27,42 @@ export async function GET(request: Request) {
           model: User,
         },
       })
-      .sort({ createdAt: -1 })
       .populate({
         path: "children",
-        select: "_id author content likes children createdAt",
+        select: "_id author content isDeleted likes children createdAt",
         populate: {
           path: "author",
           select: "name profileImage username",
           model: User,
         },
-        match: { isDeleted: false },
       })
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
-    // TODO: Replace likes with the number of likes
-    // post.likes = post.likes.length;
-    // TODO: Replace all childrens likes with the number of likes for each child
-    // post.children = post.children.map((child: IPost) => {
-    //   if (child?.likes) {
-    //     // @ts-ignore
-    //     child.likes = child.likes.length;
-    //   }
-    //   return child;
-    // });
-
+    // Post
+    post.likes = post.likes.length;
     if (post.isDeleted) {
-      post.content = "This post has been deleted";
+      post.content = "deleted";
     }
 
-    if (post.parent?.isDeleted) {
-      post.parent.content = "This post has been deleted";
+    // Post Parent
+    if (post.parent) {
+      post.parent.likes = post.parent.likes.length;
+      post.parent.children = post.parent.children.length;
+      if (post.parent.isDeleted) {
+        post.parent.content = "deleted";
+      }
     }
+
+    // Post Children
+    post.children.map((child: any) => {
+      if (child.isDeleted) {
+        child.content = "deleted";
+      }
+      child.likes = child.likes.length;
+      child.children = child.children.length;
+      return child;
+    });
 
     return NextResponse.json({ post });
   } catch (error) {

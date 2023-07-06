@@ -11,12 +11,31 @@ import { FiEdit } from "react-icons/fi";
 import Post from "@/components/post";
 import { ParentPost } from "@/components/post";
 
-interface IPostWithIdAndParent extends Omit<IPost, "parent"> {
+type OmmittedPostFields =
+  | "updatedAt"
+  | "__v"
+  | "deletedAt"
+  | "children"
+  | "likes"
+  | "author"
+  | "posts";
+
+type Author = {
   _id: string;
+  name: string;
+  username: string;
+};
+
+type PostType = Omit<IPost, OmmittedPostFields> & {
+  _id: string;
+  author: Author;
+  likes: number;
+  children: number;
   parent?: ParentPost;
-}
+};
+
 interface IUserWithPosts extends Omit<IUser, "posts"> {
-  posts: IPostWithIdAndParent[];
+  posts: PostType[];
 }
 
 export default function UserPage(props: { params: { user: string } }) {
@@ -106,7 +125,7 @@ export default function UserPage(props: { params: { user: string } }) {
                 username={user.username}
                 content={content}
                 createdAt={createdAt}
-                likes={likes?.length || 0}
+                likes={likes}
                 parent={parent}
                 replies={children}
                 _id={_id}

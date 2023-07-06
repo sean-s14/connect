@@ -19,7 +19,7 @@ export async function GET(
     // TODO: Include pagination for posts
     const posts = await Post.find(
       { author: user._id, isDeleted: false },
-      "_id content createdAt likes children"
+      "_id content likes parent children createdAt"
     )
       .sort({ createdAt: -1 })
       .populate({
@@ -31,9 +31,21 @@ export async function GET(
           select: "name profileImage username",
           model: User,
         },
-      });
+      })
+      .lean();
 
-    // TODO: Swap 'likes' from each post with the number of likes
+    // Replace 'likes' from each post with the number of likes
+    posts.forEach((post) => {
+      post.likes = post.likes.length;
+      post.children = post.children.length;
+      if (post.parent) {
+        post.parent.likes = post.parent.likes.length;
+        post.parent.children = post.parent.children.length;
+        if (post.parent.isDeleted) {
+          post.parent.content = "deleted";
+        }
+      }
+    });
 
     user.posts = posts;
 
