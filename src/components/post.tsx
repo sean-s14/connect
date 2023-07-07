@@ -1,6 +1,5 @@
 "use client";
 
-import { Types } from "mongoose";
 import { useState } from "react";
 import {
   HandThumbUpIcon,
@@ -9,19 +8,26 @@ import {
 } from "@heroicons/react/24/outline";
 import { BsReply } from "react-icons/bs";
 import { AiOutlineSend } from "react-icons/ai";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Spinner from "@/components/loaders/spinner";
 import Modal from "@/components/modal";
 import Input from "@/components/form/input";
 import convertDate from "@/utils/convertDate";
+import Reply from "@/components/reply";
 
 const styles = {
   username: "text-slate-500 text-sm",
   date: "text-slate-500 text-sm",
 };
 
-export type ParentPost = {
+type AuthorType = {
+  _id: string;
+  name: string;
+  username: string;
+};
+
+export type ParentPostType = {
   author: { name: string; username: string; _id: string };
   content: string;
   createdAt: Date;
@@ -30,15 +36,27 @@ export type ParentPost = {
   _id: string;
 };
 
-// TODO: Add option 'withReplies' to fetch posts with replies and display them
+export type ChildPostType = {
+  _id: string;
+  author: AuthorType;
+  content: string;
+  isDeleted: boolean;
+  likes: number;
+  children: number;
+  createdAt: Date;
+};
+
+// TODO: Indicate if a post has been liked by the user by changing the color of the like button this can be done by returning an extra field in the post object called 'liked' which is a boolean
+
 export default function Post({
-  name,
-  username,
-  content,
+  name = "",
+  username = "",
+  content = "no content",
   createdAt,
   likes = 0,
   parent,
-  replies = 0,
+  replyCount = 0,
+  replies = [],
   _id,
   containerClassName = "",
 }: {
@@ -46,13 +64,15 @@ export default function Post({
   username: string;
   content: string;
   createdAt: Date;
-  likes: number;
-  parent?: ParentPost;
-  replies?: number;
+  likes?: number;
+  parent?: ParentPostType;
+  replyCount?: number;
+  replies?: ChildPostType[];
   _id: string;
   containerClassName?: string;
 }) {
   const { data: session, status } = useSession();
+  const router = useRouter();
   const [liked, setLiked] = useState(0);
   const [likedLoading, setLikedLoading] = useState(false);
   const [deleted, setDeleted] = useState(false);
@@ -84,7 +104,10 @@ export default function Post({
       .finally(() => setLikedLoading(false));
   }
 
-  function handleDelete() {
+  function handleDelete(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
+    e.preventDefault();
+    e.stopPropagation();
+    e.nativeEvent.stopImmediatePropagation();
     if (!confirm("Are you sure you want to delete this post?")) return;
     fetch(`/api/posts?_id=${_id}`, {
       method: "DELETE",
@@ -133,11 +156,34 @@ export default function Post({
     setReplyModalOpen(false);
   }
 
+  function viewPost(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
+    e.preventDefault();
+    e.stopPropagation();
+    e.nativeEvent.stopImmediatePropagation();
+    router.push(`/profile/${username}/${_id}`);
+  }
+
+  function viewParentPost(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
+    e.preventDefault();
+    e.stopPropagation();
+    e.nativeEvent.stopImmediatePropagation();
+    router.push(`/profile/${parent?.author?.username}/${parent?._id}`);
+  }
+
+  function viewProfile(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
+    e.preventDefault();
+    e.stopPropagation();
+    e.nativeEvent.stopImmediatePropagation();
+    router.push(`/profile/${username}`);
+  }
+
   return (
     <div
-      className={`flex flex-col gap-2 w-full border-solid border-2 border-slate-700 px-6 py-4 shadow-slate-950 rounded-2xl bg-slate-800 relative ${containerClassName} ${
+      className={`flex flex-col gap-2 w-full border-solid border-2 border-slate-700 px-6 py-4 shadow-slate-950 rounded-2xl bg-slate-800 relative cursor-pointer ${containerClassName} ${
         deleted && "hidden"
       }`}
+      onClick={viewPost}
+      role="link"
     >
       {/* Reply Modal */}
       <Modal
@@ -187,29 +233,33 @@ export default function Post({
       {/* Delete Button */}
       {session?.user?.username === username && (
         <button
-          className="cursor-pointer p-0.5 absolute right-5 top-5 rounded border border-red-400 hover:bg-red-400/30 transition-colors"
+          className="cursor-pointer p-0.5 absolute right-5 top-5 rounded-full border border-red-400 hover:bg-red-400/30 transition-colors"
           onClick={handleDelete}
         >
           <XMarkIcon className="h-7 w-7 text-red-400" />
         </button>
       )}
 
-      {/* Name & Username */}
-      <div className="flex items-center gap-2 font-semibold">
-        {name} <div className="text-slate-500 text-sm">@{username}</div>
+      {/* Name · Username · Date */}
+      <div
+        onClick={viewProfile}
+        role="link"
+        className="flex items-center gap-2 font-semibold hover:bg-slate-700 transition-colors rounded-lg max-w-fit p-1 px-2 -ml-2"
+      >
+        <span>{name}</span>·
+        <span className="text-slate-500 text-sm">@{username}</span>·
+        <div className="text-slate-500 text-sm">{convertDate(createdAt)}</div>
       </div>
-
-      {/* Date */}
-      <div className="text-slate-500 text-sm">{convertDate(createdAt)}</div>
 
       {/* Content */}
       <p>{content}</p>
 
       {/* Parent */}
       {parent && (
-        <Link
-          href={`/profile/${parent?.author.username}/${parent?._id}`}
-          className="border-2 border-slate-600 rounded-xl ml-8 p-2 flex flex-col gap-2"
+        <div
+          role="link"
+          onClick={viewParentPost}
+          className="border-2 border-slate-600 rounded-xl ml-8 p-2 flex flex-col gap-2 hover:bg-slate-700 transition-colors"
         >
           <div className="flex items-center gap-2">
             <span className="text-sm text-slate-300">
@@ -236,20 +286,23 @@ export default function Post({
               <ChatBubbleBottomCenterIcon className="h-4 w-4" />
             </div>
           </div>
-        </Link>
+        </div>
       )}
 
       {/* Likes & Comments & Reply */}
       <div className="flex justify-between mt-3">
         <div className="flex justify-start gap-2">
+          {/* Like Count & Button */}
           <button
             className={`mt-2 py-1 px-4 rounded-3xl flex gap-3 items-center bg-slate-900 ${
-              status === "authenticated"
+              status === "authenticated" && session?.user?.username !== username
                 ? "hover:bg-slate-950 cursor-pointer"
                 : "cursor-default"
             } transition-colors ease-in-out duration-300 max-w-fit`}
             onClick={handleLike}
-            disabled={status !== "authenticated"}
+            disabled={
+              status !== "authenticated" || session?.user?.username === username
+            }
           >
             {likedLoading ? (
               <Spinner style={{ height: 15, width: 15, borderWidth: 3 }} />
@@ -258,30 +311,63 @@ export default function Post({
             )}
             <HandThumbUpIcon className="h-6 w-6" />
           </button>
-          <button className="cursor-pointer mt-2 py-1 px-4 rounded-3xl flex items-center gap-3 bg-slate-900 hover:bg-slate-950 transition-colors ease-in-out duration-300 max-w-fit">
-            {replies}
+
+          {/* Comment Count & Link */}
+          <div
+            className="cursor-pointer mt-2 py-1 px-4 rounded-3xl flex items-center gap-3 bg-slate-900 hover:bg-slate-950 transition-colors ease-in-out duration-300 max-w-fit"
+            role="link"
+            onClick={viewPost}
+          >
+            {replyCount}
             <ChatBubbleBottomCenterIcon className="h-6 w-6" />
-          </button>
+          </div>
         </div>
 
         {/* Reply */}
-        <button
-          className="cursor-pointer mt-2 py-1 px-3 rounded-3xl flex items-center gap-2 bg-slate-900 hover:bg-slate-950 transition-colors ease-in-out duration-300 max-w-fit"
-          onClick={openReplyModal}
-        >
-          <span className="text-sm">Reply</span>
-          <BsReply className="h-6 w-6" />
-        </button>
+        {session?.user && (
+          <button
+            className="cursor-pointer mt-2 py-1 px-3 rounded-3xl flex items-center gap-2 bg-slate-900 hover:bg-slate-950 transition-colors ease-in-out duration-300 max-w-fit"
+            onClick={openReplyModal}
+          >
+            <span className="text-sm">Reply</span>
+            <BsReply className="h-6 w-6" />
+          </button>
+        )}
       </div>
 
-      <hr className="my-2 border-slate-500" />
-      {replies > 0 ? (
-        <Link className="text-center" href={`/profile/${username}/${_id}`}>
-          View Comments
-        </Link>
-      ) : (
-        <div className="text-slate-500 text-center">No comments</div>
-      )}
+      {/* Replies */}
+      <div className="cursor-auto flex flex-col gap-2">
+        {replies && replies.length > 0 && (
+          <>
+            <hr className="my-2 border-slate-500" />
+
+            {replies.map(
+              ({
+                _id,
+                author,
+                content,
+                isDeleted,
+                likes,
+                children,
+                createdAt,
+              }) => (
+                <div key={_id}>
+                  <hr className="ml-3 my-0.5 w-0.5 h-5 bg-slate-100/40 border-none" />
+                  <Reply
+                    _id={_id}
+                    author={author}
+                    content={content}
+                    isDeleted={isDeleted}
+                    likes={likes}
+                    replyCount={children}
+                    createdAt={createdAt}
+                  />
+                </div>
+              )
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }

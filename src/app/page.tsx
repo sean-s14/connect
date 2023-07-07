@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { IPost } from "@/constants/schemas/post";
 import Post from "@/components/post";
-import { ParentPost } from "@/components/post";
+import { ParentPostType } from "@/components/post";
 import Input from "@/components/form/input";
 import { AiOutlineSend } from "react-icons/ai";
 import { useSession } from "next-auth/react";
@@ -15,8 +15,6 @@ type Author = {
   username: string;
 };
 
-type OmmittedPostFields = "updatedAt" | "__v" | "deletedAt";
-
 type PostType = Omit<
   IPost,
   "updatedAt" | "__v" | "deletedAt" | "likes" | "parent" | "children" | "author"
@@ -24,7 +22,7 @@ type PostType = Omit<
   _id: string;
   author: Author;
   likes: number;
-  parent?: ParentPost;
+  parent?: ParentPostType;
   children: number;
 };
 
@@ -107,7 +105,7 @@ export default function Home() {
                   createdAt,
                   likes,
                   parent,
-                  children: replies,
+                  children: replyCount,
                   _id,
                 },
                 index
@@ -120,7 +118,7 @@ export default function Home() {
                   createdAt={createdAt}
                   likes={likes || 0}
                   parent={parent}
-                  replies={replies}
+                  replyCount={replyCount}
                   _id={_id}
                   containerClassName="max-w-2xl"
                 />

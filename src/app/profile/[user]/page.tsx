@@ -1,15 +1,12 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
 import { IUser } from "@/constants/schemas/user";
 import { IPost } from "@/constants/schemas/post";
 import Image from "next/image";
 import Link from "next/link";
 import { IoCalendar } from "react-icons/io5";
 import { FiEdit } from "react-icons/fi";
-import Post from "@/components/post";
-import { ParentPost } from "@/components/post";
+import Post, { ParentPostType } from "@/components/post";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 type OmmittedPostFields =
   | "updatedAt"
@@ -31,48 +28,42 @@ type PostType = Omit<IPost, OmmittedPostFields> & {
   author: Author;
   likes: number;
   children: number;
-  parent?: ParentPost;
+  parent?: ParentPostType;
 };
 
 interface IUserWithPosts extends Omit<IUser, "posts"> {
   posts: PostType[];
 }
 
-export default function UserPage(props: { params: { user: string } }) {
-  const { data: session } = useSession();
-  const [user, setUser] = useState<IUserWithPosts | null>(null);
-  const [loading, setLoading] = useState(true); // loading state for fetching user data
+async function fetchUser(username: string) {
+  try {
+    const res = await fetch(
+      `${process.env.NEXTAUTH_URL}/api/users/${username}`
+    );
+    const data = await res.json();
+    const { user }: { user: IUserWithPosts } = data;
+    return user;
+  } catch (err) {
+    console.log(err);
+    return null;
+  }
+}
 
-  useEffect(() => {
-    // fetch user data by username
-    setLoading(true);
-    if (props.params.user) {
-      fetch(`/api/users/${props.params.user}`)
-        .then((res) => res.json())
-        .then((data) => {
-          const { user } = data;
-          setUser(user);
-        })
-        .catch((err) => {
-          console.log(err);
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    }
-  }, [props.params.user]);
+export default async function UserPage(props: { params: { user: string } }) {
+  const session = await getServerSession(authOptions);
+  const user = await fetchUser(props.params.user);
+
+  if (!user) {
+    return <div>User not found</div>;
+  }
 
   return (
     <div
-      className={`${
-        session?.user && !loading
-          ? "opacity-1"
-          : "pointer-events-none opacity-0"
-      } flex flex-col items-start justify-start p-10 min-w-100 min-h-screen transition-opacity duration-500`}
+      className={`flex flex-col items-start justify-start p-10 min-w-100 min-h-screen transition-opacity duration-500`}
     >
-      {session?.user?.image ? (
+      {user?.image ? (
         <Image
-          src={session?.user?.image || ""}
+          src={user?.image || ""}
           alt="users profile image"
           width={120}
           height={120}
@@ -83,10 +74,10 @@ export default function UserPage(props: { params: { user: string } }) {
         <div className="w-[120px] h-[120px]"></div>
       )}
       <div className="flex flex-col gap-2 mt-5 w-full max-w-2xl self-center relative">
-        <div className="text-xl font-bold">{session?.user?.name}</div>
-        {session?.user?.username && (
+        <div className="text-xl font-bold">{user?.name}</div>
+        {user?.username && (
           <div className="text-md font-medium text-slate-500">
-            @{session.user.username}
+            @{user.username}
           </div>
         )}
         {user?.createdAt && (
@@ -127,7 +118,7 @@ export default function UserPage(props: { params: { user: string } }) {
                 createdAt={createdAt}
                 likes={likes}
                 parent={parent}
-                replies={children}
+                replyCount={children}
                 _id={_id}
               />
             )

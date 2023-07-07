@@ -1,12 +1,5 @@
-"use client";
-
-import { useState, useEffect } from "react";
-import {
-  HandThumbUpIcon,
-  ChatBubbleBottomCenterIcon,
-} from "@heroicons/react/24/outline";
 import { IPost } from "@/constants/schemas/post";
-import convertDate from "@/utils/convertDate";
+import Post, { ParentPostType, ChildPostType } from "@/components/post";
 
 type Author = {
   _id: string;
@@ -22,115 +15,51 @@ type OmmittedPostFields =
   | "likes"
   | "author";
 
-type ChildPostType = Omit<IPost, OmmittedPostFields> & {
-  likes: number;
-  children: number;
-  author: Author;
-};
-
-type ParentPostType = Omit<IPost, OmmittedPostFields> & {
-  likes: number;
-  children: number;
-  author: Author;
-};
-
 type PostType = Omit<IPost, OmmittedPostFields | "parent"> & {
+  _id: string;
   likes: number;
   author: Author;
   parent?: ParentPostType;
   children: ChildPostType[];
 };
 
-export default function Post({
+async function fetchPost(_id: string) {
+  try {
+    const res = await fetch(`${process.env.NEXTAUTH_URL}/api/posts?_id=${_id}`);
+    const data = await res.json();
+    const { post }: { post: PostType } = data;
+    return post;
+  } catch (err) {
+    console.log(err);
+    return null;
+  }
+}
+
+export default async function PostPage({
   params,
 }: {
   params: { user: string; post: string };
 }) {
-  const [post, setPost] = useState<PostType | null>(null);
+  const post = await fetchPost(params.post);
 
-  useEffect(() => {
-    fetch(`/api/posts?_id=${params.post}`)
-      .then((res) => res.json())
-      .then((data) => {
-        const { post } = data;
-        console.log("Post:", post);
-        setPost(post);
-      });
-  }, [params.post]);
+  if (!post) {
+    return <div>Post not found</div>;
+  }
 
-  // TODO: Replace with Post component
   return (
     <div className="pt-10 min-w-full flex flex-col items-center">
-      <div className="flex flex-col gap-2 max-w-[90%] w-[600px] border-solid border-2 border-slate-700 px-6 py-4 shadow-slate-950 rounded-2xl bg-slate-800">
-        <div className="flex items-center gap-2 font-semibold">
-          {post?.author?.name}{" "}
-          <div className="text-slate-500 text-sm">
-            @{post?.author?.username}
-          </div>
-        </div>
-
-        <div className="text-slate-500 text-sm">
-          {post?.createdAt && convertDate(post.createdAt)}
-        </div>
-        <div>{post?.content}</div>
-
-        {/* Count for Likes & Comments */}
-        <div className="flex justify-start gap-2 mt-3">
-          <div className="mt-2 py-1 px-4 rounded-3xl flex gap-3 bg-slate-900 max-w-fit">
-            {post?.likes || 0}
-            <HandThumbUpIcon className="h-6 w-6" />
-          </div>
-          <div className="mt-2 py-1 px-4 rounded-3xl flex gap-3 bg-slate-900 max-w-fit">
-            {post?.children?.length}
-            <ChatBubbleBottomCenterIcon className="h-6 w-6" />
-          </div>
-        </div>
-        {/* TODO: Add reply button here */}
-        <hr className="my-2 border-slate-500" />
-
-        {/* Comments */}
-        {Array.isArray(post?.children) &&
-        post?.children?.length &&
-        post.children.length > 0 ? (
-          post?.children.map(
-            ({ author, createdAt, likes, content, isDeleted }, index) => (
-              // TODO: Turn this into a link to the comment
-              <div key={index} className="py-2">
-                <div className="flex items-center gap-2">
-                  <span>{author?.name}</span>·
-                  <span className="text-slate-500 text-sm">
-                    @{author?.username}
-                  </span>
-                  ·
-                  <span className="text-slate-500 text-sm">
-                    {convertDate(createdAt)}
-                  </span>
-                </div>
-
-                <div className="pl-4">
-                  <span className="float-left flex items-center mt-2 mr-2 py-1 px-3 rounded-3xl gap-2 bg-slate-900 transition-colors ease-in-out duration-300 max-w-fit text-sm">
-                    <span>{likes || 0}</span>
-                    {/* TODO: Enable liking reply */}
-                    <span>
-                      <HandThumbUpIcon className="h-4 w-4" />
-                    </span>
-                  </span>
-
-                  <span
-                    className={`flex pt-1 ${
-                      isDeleted && "line-through text-slate-400"
-                    }`}
-                  >
-                    {content}
-                  </span>
-                </div>
-              </div>
-            )
-          )
-        ) : (
-          <div className="text-slate-500 text-center">No comments</div>
-        )}
-      </div>
+      <Post
+        name={post?.author?.name}
+        username={post?.author?.username}
+        content={post?.content}
+        createdAt={post?.createdAt}
+        likes={post?.likes}
+        replyCount={post?.children?.length}
+        replies={post?.children}
+        parent={post?.parent}
+        _id={post?._id}
+        containerClassName="max-w-[90%]"
+      />
     </div>
   );
 }

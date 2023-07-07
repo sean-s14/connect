@@ -16,14 +16,14 @@ export async function GET(request: Request) {
 
     const post: any = await Post.findOne(params)
       .select("_id author content isDeleted likes parent children createdAt")
-      .populate("author", "name profileImage username", User)
+      .populate("author", "name image username", User)
       .populate({
         path: "parent",
         select: "_id author content isDeleted likes children createdAt",
         model: Post,
         populate: {
           path: "author",
-          select: "name profileImage username",
+          select: "name image username",
           model: User,
         },
       })
@@ -32,7 +32,7 @@ export async function GET(request: Request) {
         select: "_id author content isDeleted likes children createdAt",
         populate: {
           path: "author",
-          select: "name profileImage username",
+          select: "name image username",
           model: User,
         },
       })

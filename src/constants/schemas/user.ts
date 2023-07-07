@@ -8,7 +8,7 @@ export type UserFields =
   | "username"
   | "email"
   | "password"
-  | "profileImage"
+  | "image"
   | "dateOfBirth"
   | "gender"
   | "bio"
@@ -23,7 +23,7 @@ export interface IUser {
   username: string;
   email: string;
   password?: string;
-  profileImage?: string;
+  image?: string;
   dateOfBirth?: Date;
   gender?: Gender;
   bio?: string;

@@ -12,7 +12,7 @@ export async function GET(
 
     const user = await User.findOne(
       { username: params.user },
-      "_id name profileImage username bio createdAt",
+      "_id name image username bio createdAt",
       { lean: true }
     );
 
@@ -28,7 +28,7 @@ export async function GET(
         model: Post,
         populate: {
           path: "author",
-          select: "name profileImage username",
+          select: "name image username",
           model: User,
         },
       })

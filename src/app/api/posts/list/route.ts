@@ -14,7 +14,7 @@ export async function GET(request: Request) {
     )
       .populate({
         path: "author",
-        select: "name profileImage username",
+        select: "name image username",
         model: User,
       })
       .populate("parent", "author content likes children createdAt", Post)
@@ -22,7 +22,7 @@ export async function GET(request: Request) {
         path: "parent",
         populate: {
           path: "author",
-          select: "name profileImage username",
+          select: "name image username",
           model: User,
         },
       })
