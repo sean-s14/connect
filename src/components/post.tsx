@@ -31,7 +31,8 @@ export type ParentPostType = {
   author: { name: string; username: string; _id: string };
   content: string;
   createdAt: Date;
-  likes: number;
+  liked: boolean;
+  likeCount: number;
   children: number;
   _id: string;
 };
@@ -41,46 +42,52 @@ export type ChildPostType = {
   author: AuthorType;
   content: string;
   isDeleted: boolean;
-  likes: number;
+  liked: boolean;
+  likeCount: number;
   children: number;
   createdAt: Date;
 };
 
 // TODO: Indicate if a post has been liked by the user by changing the color of the like button this can be done by returning an extra field in the post object called 'liked' which is a boolean
 
-export default function Post({
-  name = "",
-  username = "",
-  content = "no content",
-  createdAt,
-  likes = 0,
-  parent,
-  replyCount = 0,
-  replies = [],
-  _id,
-  containerClassName = "",
-}: {
+export default function Post(props: {
   name: string;
   username: string;
   content: string;
   createdAt: Date;
-  likes?: number;
   parent?: ParentPostType;
+  liked?: boolean;
+  likeCount?: number;
   replyCount?: number;
   replies?: ChildPostType[];
   _id: string;
   containerClassName?: string;
 }) {
+  const {
+    name = "",
+    username = "",
+    content = "no content",
+    createdAt,
+    parent,
+    replyCount = 0,
+    replies = [],
+    _id,
+    containerClassName = "",
+  } = props;
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [liked, setLiked] = useState(0);
+  const [liked, setLiked] = useState(props.liked || false);
+  const [likeCount, setLikeCount] = useState(props.likeCount || 0);
   const [likedLoading, setLikedLoading] = useState(false);
   const [deleted, setDeleted] = useState(false);
   const [reply, setReply] = useState("");
   const [replyLoading, setReplyLoading] = useState(false);
   const [replyModalOpen, setReplyModalOpen] = useState(false);
 
-  function handleLike() {
+  function handleLike(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
+    e.preventDefault();
+    e.stopPropagation();
+    e.nativeEvent.stopImmediatePropagation();
     setLikedLoading(true);
     fetch(`/api/posts?_id=${_id}&like=true`, {
       method: "PATCH",
@@ -92,13 +99,9 @@ export default function Post({
       .then((res) => res.json())
       .then((data) => {
         const { post } = data;
-        if (post?.likes?.length > likes) {
-          setLiked(1);
-        } else if (post?.likes?.length === likes) {
-          setLiked(0);
-        } else {
-          setLiked(-1);
-        }
+        console.log("Updated Post:", post);
+        setLikeCount(post?.likeCount || 0);
+        setLiked(post?.liked || false);
       })
       .catch((err) => console.log(err))
       .finally(() => setLikedLoading(false));
@@ -125,6 +128,8 @@ export default function Post({
 
   function handleReply(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    e.stopPropagation();
+    e.nativeEvent.stopImmediatePropagation();
     if (!session) return;
     if (!reply) return;
     setReplyLoading(true);
@@ -148,11 +153,21 @@ export default function Post({
       });
   }
 
-  function openReplyModal() {
+  function openReplyModal(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
+    e.preventDefault();
+    e.stopPropagation();
+    e.nativeEvent.stopImmediatePropagation();
     setReplyModalOpen(true);
   }
 
-  function closeReplyModal() {
+  function closeReplyModal(
+    e?: React.MouseEvent<HTMLButtonElement, MouseEvent>
+  ) {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.nativeEvent.stopImmediatePropagation();
+    }
     setReplyModalOpen(false);
   }
 
@@ -174,6 +189,8 @@ export default function Post({
     e.preventDefault();
     e.stopPropagation();
     e.nativeEvent.stopImmediatePropagation();
+    // TODO: When updating profile username, returning to the profile page will not work. Instead find profile by id and use the 'as' prop in the router.push() function like so:
+    // router.push(`/profile/${username}`, `/profile/${userId}`);
     router.push(`/profile/${username}`);
   }
 
@@ -189,7 +206,7 @@ export default function Post({
       <Modal
         open={replyModalOpen}
         onClose={closeReplyModal}
-        containerClassName="flex justify-center items-center"
+        containerClassName="flex justify-center items-center cursor-default"
         modalClassName="max-w-[90%] w-[500px] bg-slate-800 p-6 rounded-2xl flex flex-col items-center"
       >
         {/* Comment replying to */}
@@ -278,7 +295,7 @@ export default function Post({
           {/* Likes and replies */}
           <div className="flex gap-2">
             <div className="py-1 px-3 rounded-3xl flex gap-3 items-center bg-slate-900 max-w-fit">
-              <span className="text-sm">{parent?.likes || 0}</span>
+              <span className="text-sm">{parent?.likeCount || 0}</span>
               <HandThumbUpIcon className="h-4 w-4" />
             </div>
             <div className="py-1 px-3 rounded-3xl flex gap-3 items-center bg-slate-900 max-w-fit">
@@ -298,6 +315,8 @@ export default function Post({
               status === "authenticated" && session?.user?.username !== username
                 ? "hover:bg-slate-950 cursor-pointer"
                 : "cursor-default"
+            } ${
+              liked && "bg-slate-950"
             } transition-colors ease-in-out duration-300 max-w-fit`}
             onClick={handleLike}
             disabled={
@@ -307,7 +326,7 @@ export default function Post({
             {likedLoading ? (
               <Spinner style={{ height: 15, width: 15, borderWidth: 3 }} />
             ) : (
-              <span>{likes + liked}</span>
+              <span>{likeCount}</span>
             )}
             <HandThumbUpIcon className="h-6 w-6" />
           </button>
@@ -347,7 +366,8 @@ export default function Post({
                 author,
                 content,
                 isDeleted,
-                likes,
+                liked,
+                likeCount,
                 children,
                 createdAt,
               }) => (
@@ -358,7 +378,8 @@ export default function Post({
                     author={author}
                     content={content}
                     isDeleted={isDeleted}
-                    likes={likes}
+                    liked={liked}
+                    likeCount={likeCount}
                     replyCount={children}
                     createdAt={createdAt}
                   />

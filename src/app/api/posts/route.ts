@@ -5,10 +5,12 @@ import Post from "@/schemas/post";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { Types } from "mongoose";
+import { ObjectId } from "mongoose";
 // import { faker } from "@faker-js/faker";
 
 export async function GET(request: Request) {
   try {
+    const session = await getServerSession(authOptions);
     await mongooseConnect();
 
     const url = new URL(request.url);
@@ -39,15 +41,33 @@ export async function GET(request: Request) {
       .sort({ createdAt: -1 })
       .lean();
 
+    const authorId = session?.user?.id;
+
     // Post
-    post.likes = post.likes.length;
+    if (authorId) {
+      post.liked = post.likes
+        .map((like: ObjectId) => like.toString())
+        .includes(authorId);
+    } else {
+      post.liked = false;
+    }
+    post.likeCount = post.likes.length;
+    delete post.likes;
     if (post.isDeleted) {
       post.content = "deleted";
     }
 
     // Post Parent
     if (post.parent) {
-      post.parent.likes = post.parent.likes.length;
+      if (authorId) {
+        post.parent.liked = post.parent.likes
+          .map((like: ObjectId) => like.toString())
+          .includes(authorId);
+      } else {
+        post.parent.liked = false;
+      }
+      post.parent.likeCount = post.parent.likes.length;
+      delete post.parent.likes;
       post.parent.children = post.parent.children.length;
       if (post.parent.isDeleted) {
         post.parent.content = "deleted";
@@ -56,11 +76,19 @@ export async function GET(request: Request) {
 
     // Post Children
     post.children.map((child: any) => {
+      if (authorId) {
+        child.liked = child.likes
+          .map((like: ObjectId) => like.toString())
+          .includes(authorId);
+      } else {
+        child.liked = false;
+      }
+      child.likeCount = child.likes.length;
+      delete child.likes;
+      child.children = child.children.length;
       if (child.isDeleted) {
         child.content = "deleted";
       }
-      child.likes = child.likes.length;
-      child.children = child.children.length;
       return child;
     });
 
@@ -71,6 +99,7 @@ export async function GET(request: Request) {
   }
 }
 
+// TODO: Do not accept request with parent that is deleted
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -89,7 +118,8 @@ export async function POST(request: Request) {
       body.parent = [params.parentId];
     }
 
-    const post = await Post.create({ ...body, author });
+    let post = await Post.create({ ...body, author });
+    post = await post.populate("author", "name image username");
 
     if (params?.parentId) {
       const parentPost = await Post.findOneAndUpdate(
@@ -139,7 +169,12 @@ export async function PATCH(request: Request) {
         post.save();
       }
 
-      return NextResponse.json({ post });
+      const liked = post.likes.includes(author);
+      const likeCount = post.likes.length;
+
+      return NextResponse.json({
+        post: { ...post, liked, likeCount, likes: null },
+      });
     }
 
     const post = await Post.findOneAndUpdate(filter, body, options);

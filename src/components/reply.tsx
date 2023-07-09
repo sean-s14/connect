@@ -10,31 +10,32 @@ import convertDate from "@/utils/convertDate";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
-export default function Reply({
-  _id,
-  author = { _id: "", name: "", username: "" },
-  content = "",
-  likes = 0,
-  replyCount = 0,
-  isDeleted = false,
-  createdAt,
-}: {
+export default function Reply(props: {
   _id: string;
   author: { _id: string; name: string; username: string };
   content: string;
-  likes: number;
+  liked: boolean;
+  likeCount: number;
   replyCount: number;
   isDeleted: boolean;
   createdAt: Date;
 }) {
+  const {
+    author = { _id: "", name: "", username: "" },
+    content = "",
+    replyCount = 0,
+    isDeleted = false,
+    createdAt,
+  } = props;
   const router = useRouter();
   const { data: session, status } = useSession();
-  const [liked, setLiked] = useState(0);
+  const [liked, setLiked] = useState(props.liked || false);
+  const [likeCount, setLikeCount] = useState(props.likeCount || 0);
   const [likedLoading, setLikedLoading] = useState(false);
 
   function handleLike() {
     setLikedLoading(true);
-    fetch(`/api/posts?_id=${_id}&like=true`, {
+    fetch(`/api/posts?_id=${props._id}&like=true`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -44,13 +45,8 @@ export default function Reply({
       .then((res) => res.json())
       .then((data) => {
         const { post } = data;
-        if (post?.likes?.length > likes) {
-          setLiked(1);
-        } else if (post?.likes?.length === likes) {
-          setLiked(0);
-        } else {
-          setLiked(-1);
-        }
+        setLikeCount(post?.likeCount);
+        setLiked(post?.liked);
       })
       .catch((err) => console.log(err))
       .finally(() => setLikedLoading(false));
@@ -60,7 +56,7 @@ export default function Reply({
     e.preventDefault();
     e.stopPropagation();
     e.nativeEvent.stopImmediatePropagation();
-    router.push(`/profile/${author?.username}/${_id}`);
+    router.push(`/profile/${author?.username}/${props._id}`);
   }
 
   function viewProfile(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
@@ -88,6 +84,7 @@ export default function Reply({
         {content}
       </span>
 
+      {/* Like Button and Count */}
       <div className="flex items-center">
         <button
           className={`mt-2 mr-2 py-0.5 px-3 rounded-3xl flex gap-2 items-center bg-slate-900 ${
@@ -95,6 +92,8 @@ export default function Reply({
             session?.user?.username !== author?.username
               ? "hover:bg-slate-950 cursor-pointer"
               : "cursor-default"
+          } ${
+            liked && "bg-slate-950"
           } transition-colors ease-in-out duration-300 max-w-fit`}
           onClick={handleLike}
           disabled={
@@ -105,11 +104,12 @@ export default function Reply({
           {likedLoading ? (
             <Spinner style={{ height: 15, width: 15, borderWidth: 3 }} />
           ) : (
-            <span>{likes + liked}</span>
+            <span>{likeCount}</span>
           )}
           <HandThumbUpIcon className="h-4 w-4" />
         </button>
 
+        {/* Reply Count and link to post */}
         <div
           className="cursor-pointer mt-2 py-0.5 px-3 rounded-3xl flex items-center gap-2 bg-slate-900 hover:bg-slate-950 transition-colors ease-in-out duration-300 max-w-fit"
           role="link"

@@ -1,3 +1,5 @@
+"use client";
+
 import { IUser } from "@/constants/schemas/user";
 import { IPost } from "@/constants/schemas/post";
 import Image from "next/image";
@@ -5,8 +7,12 @@ import Link from "next/link";
 import { IoCalendar } from "react-icons/io5";
 import { FiEdit } from "react-icons/fi";
 import Post, { ParentPostType } from "@/components/post";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { useSession } from "next-auth/react";
+import useSWR from "swr";
+import usePagination from "@/hooks/usePagination";
+import InfiniteScroll from "react-infinite-scroll-component";
+import Spinner from "@/components/loaders/spinner";
+import convertDate from "@/utils/convertDate";
 
 type OmmittedPostFields =
   | "updatedAt"
@@ -26,35 +32,56 @@ type Author = {
 type PostType = Omit<IPost, OmmittedPostFields> & {
   _id: string;
   author: Author;
-  likes: number;
+  liked: boolean;
+  likeCount: number;
   children: number;
   parent?: ParentPostType;
 };
 
-interface IUserWithPosts extends Omit<IUser, "posts"> {
-  posts: PostType[];
-}
+const fetchUser = async (url: string) => {
+  const res = await fetch(url);
+  const { user }: { user: IUser } = await res.json();
+  return user;
+};
 
-async function fetchUser(username: string) {
-  try {
-    const res = await fetch(
-      `${process.env.NEXTAUTH_URL}/api/users/${username}`
+const fetchPosts = async (url: string) => {
+  const res = await fetch(url);
+  const { posts }: { posts: PostType[] } = await res.json();
+  return posts;
+};
+
+// TODO: When displaying /profile/{username} instead use the 'as' prop to /{username}
+export default function UserPage(props: { params: { user: string } }) {
+  const { data: session, status } = useSession();
+  const {
+    data: user,
+    error: userError,
+    isLoading: userIsLoading,
+  } = useSWR<IUser>(`/api/users/${props.params.user}`, fetchUser);
+
+  const {
+    flattenedData: posts,
+    error: postsError,
+    isLoading: postsIsLoading,
+    size: postSize,
+    setSize: setPostSize,
+    hasReachedEnd,
+  } = usePagination<PostType>(
+    `/api/posts/list?username=${props.params.user}`,
+    10,
+    fetchPosts
+  );
+
+  if (userIsLoading || postsIsLoading) {
+    return (
+      <div className="min-w-full min-h-screen flex items-center justify-center">
+        <Spinner style={{ width: 80, height: 80, borderWidth: 8 }} />
+      </div>
     );
-    const data = await res.json();
-    const { user }: { user: IUserWithPosts } = data;
-    return user;
-  } catch (err) {
-    console.log(err);
-    return null;
   }
-}
 
-export default async function UserPage(props: { params: { user: string } }) {
-  const session = await getServerSession(authOptions);
-  const user = await fetchUser(props.params.user);
-
-  if (!user) {
-    return <div>User not found</div>;
+  if (userError || postsError) {
+    return <div>error</div>;
   }
 
   return (
@@ -84,15 +111,14 @@ export default async function UserPage(props: { params: { user: string } }) {
           <div className="text-md font-medium text-slate-500 flex items-center gap-1">
             <IoCalendar className="h-4 w-4 inline-flex" />
             <span>Joined</span>
-            {new Date(user.createdAt).toLocaleString(undefined, {
-              month: "long",
-              year: "numeric",
-            })}
+            {convertDate(user.createdAt)}
           </div>
         )}
         {user?.bio && (
           <div className="text-md font-normal text-slate-300">{user?.bio}</div>
         )}
+
+        {/* Link to Profile Management page */}
         {session?.user?.username === props.params.user && (
           <Link
             href="/profile"
@@ -105,26 +131,49 @@ export default async function UserPage(props: { params: { user: string } }) {
       </div>
 
       {/* Post Container */}
-      <div className="w-full max-w-2xl self-center items-center mt-10 flex flex-col gap-6">
-        {user?.posts &&
-          user?.posts.length > 0 &&
-          user?.posts.map(
-            ({ _id, content, createdAt, likes, children, parent }, index) => (
-              <Post
-                key={index}
-                name={user?.name}
-                username={user.username}
-                content={content}
-                createdAt={createdAt}
-                likes={likes}
-                parent={parent}
-                replyCount={children}
-                _id={_id}
-              />
-            )
-          )}
+      <div className="w-full max-w-2xl mt-10 flex flex-col self-center items-center">
+        <InfiniteScroll
+          dataLength={posts?.length || 0}
+          next={() => setPostSize(postSize + 1)}
+          hasMore={!hasReachedEnd}
+          loader={<Spinner style={{ width: 30, height: 30, borderWidth: 3 }} />}
+          endMessage={
+            <div className="text-slate-500 text-center">No more posts</div>
+          }
+          className="flex flex-col gap-6 w-full min-w-full"
+        >
+          {posts &&
+            posts.length > 0 &&
+            posts.map(
+              (
+                {
+                  _id,
+                  author,
+                  content,
+                  createdAt,
+                  liked,
+                  likeCount,
+                  children,
+                  parent,
+                },
+                index
+              ) => (
+                <Post
+                  key={index}
+                  name={author.name}
+                  username={author.username}
+                  content={content}
+                  createdAt={createdAt}
+                  liked={liked}
+                  likeCount={likeCount}
+                  parent={parent}
+                  replyCount={children}
+                  _id={_id}
+                />
+              )
+            )}
+        </InfiniteScroll>
       </div>
-      {/* TODO: Include pagination for posts */}
     </div>
   );
 }

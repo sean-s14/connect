@@ -9,6 +9,9 @@
 }
 
 @layer components {
+  .infinite-scroll-component__outerdiv {
+    @apply w-full;
+  }
   .btn {
     @apply border-solid border-2 rounded transition-colors ease-in-out duration-300;
   }
