@@ -1,32 +1,9 @@
 "use client";
 
 import useSWR from "swr";
-import { IPost } from "@/constants/schemas/post";
-import Post, { ParentPostType, ChildPostType } from "@/components/post";
+import Post from "@/components/post";
+import { IPostWithAuthorAndParent } from "@/types/post";
 import Spinner from "@/components/loaders/spinner";
-
-type Author = {
-  _id: string;
-  name: string;
-  username: string;
-};
-
-type OmmittedPostFields =
-  | "updatedAt"
-  | "__v"
-  | "deletedAt"
-  | "children"
-  | "likes"
-  | "author";
-
-type PostType = Omit<IPost, OmmittedPostFields | "parent"> & {
-  _id: string;
-  liked: boolean;
-  likeCount: number;
-  author: Author;
-  parent?: ParentPostType;
-  children: ChildPostType[];
-};
 
 const fetchPost = async (url: string) => {
   const res = await fetch(url);
@@ -44,7 +21,10 @@ export default function PostPage({
     data: post,
     error,
     isLoading,
-  } = useSWR<PostType>(`/api/posts?_id=${params.post}`, fetchPost);
+  } = useSWR<IPostWithAuthorAndParent>(
+    `/api/posts?_id=${params.post}`,
+    fetchPost
+  );
 
   if (isLoading)
     return (
@@ -59,19 +39,7 @@ export default function PostPage({
   return (
     <div className="pt-10 min-w-full flex flex-col items-center">
       {post ? (
-        <Post
-          name={post.author.name}
-          username={post.author.username}
-          content={post.content}
-          createdAt={post.createdAt}
-          liked={post.liked}
-          likeCount={post.likeCount}
-          replyCount={post.children.length}
-          replies={post.children}
-          parent={post.parent}
-          _id={post._id}
-          containerClassName="max-w-[90%]"
-        />
+        <Post post={post} containerClassName="max-w-[90%]" />
       ) : (
         <div>Post not found</div>
       )}

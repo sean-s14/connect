@@ -7,6 +7,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { Types } from "mongoose";
 import { ObjectId } from "mongoose";
 // import { faker } from "@faker-js/faker";
+import { IPostWithAuthorAndParent } from "@/types/post";
 
 export async function GET(request: Request) {
   try {
@@ -16,7 +17,7 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const params = Object.fromEntries(url.searchParams.entries());
 
-    const post: any = await Post.findOne(params)
+    const post: IPostWithAuthorAndParent | null = await Post.findOne(params)
       .select("_id author content isDeleted likes parent children createdAt")
       .populate("author", "name image username", User)
       .populate({
@@ -41,17 +42,21 @@ export async function GET(request: Request) {
       .sort({ createdAt: -1 })
       .lean();
 
+    if (!post) {
+      return NextResponse.json({ err: "Post not found!" }, { status: 404 });
+    }
+
     const authorId = session?.user?.id;
 
     // Post
     if (authorId) {
-      post.liked = post.likes
-        .map((like: ObjectId) => like.toString())
+      post.liked = post?.likes
+        ?.map((like: Types.ObjectId) => like.toString())
         .includes(authorId);
     } else {
       post.liked = false;
     }
-    post.likeCount = post.likes.length;
+    post.likeCount = post?.likes?.length ?? 0;
     delete post.likes;
     if (post.isDeleted) {
       post.content = "deleted";
@@ -60,37 +65,42 @@ export async function GET(request: Request) {
     // Post Parent
     if (post.parent) {
       if (authorId) {
-        post.parent.liked = post.parent.likes
-          .map((like: ObjectId) => like.toString())
-          .includes(authorId);
+        post.parent.liked =
+          post.parent?.likes
+            ?.map((like: Types.ObjectId) => like.toString())
+            .includes(authorId) ?? false;
       } else {
         post.parent.liked = false;
       }
-      post.parent.likeCount = post.parent.likes.length;
+      post.parent.likeCount = post.parent?.likes?.length ?? 0;
       delete post.parent.likes;
-      post.parent.children = post.parent.children.length;
+      post.parent.replyCount = post.parent?.children?.length ?? 0;
+      delete post.parent.children;
       if (post.parent.isDeleted) {
         post.parent.content = "deleted";
       }
     }
 
     // Post Children
-    post.children.map((child: any) => {
-      if (authorId) {
-        child.liked = child.likes
-          .map((like: ObjectId) => like.toString())
-          .includes(authorId);
-      } else {
-        child.liked = false;
-      }
-      child.likeCount = child.likes.length;
-      delete child.likes;
-      child.children = child.children.length;
-      if (child.isDeleted) {
-        child.content = "deleted";
-      }
-      return child;
-    });
+    post.replyCount = post?.children?.length ?? 0;
+    post.replies =
+      post?.children?.map((child: any) => {
+        if (authorId) {
+          child.liked = child.likes
+            .map((like: ObjectId) => like.toString())
+            .includes(authorId);
+        } else {
+          child.liked = false;
+        }
+        child.likeCount = child.likes.length;
+        delete child.likes;
+        child.replyCount = child.children.length;
+        delete child.children;
+        if (child.isDeleted) {
+          child.content = "deleted";
+        }
+        return child;
+      }) ?? [];
 
     return NextResponse.json({ post });
   } catch (error) {
@@ -169,11 +179,13 @@ export async function PATCH(request: Request) {
         post.save();
       }
 
-      const liked = post.likes.includes(author);
-      const likeCount = post.likes.length;
+      const liked =
+        post?.likes?.map((like: Types.ObjectId) => like.toString() === author)
+          .length > 0;
+      const likeCount = post?.likes?.length ?? 0;
 
       return NextResponse.json({
-        post: { ...post, liked, likeCount, likes: null },
+        post: { liked, likeCount },
       });
     }
 

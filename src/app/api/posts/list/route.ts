@@ -4,7 +4,8 @@ import User from "@/schemas/user";
 import Post from "@/schemas/post";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { ObjectId } from "mongoose";
+import { Types } from "mongoose";
+import { IPostWithAuthorAndParent } from "@/types/post";
 
 export async function GET(request: Request) {
   try {
@@ -32,7 +33,7 @@ export async function GET(request: Request) {
     };
 
     // TODO: Exclude posts who dont have an author
-    const posts = await Post.find(
+    const posts: IPostWithAuthorAndParent[] = await Post.find(
       query,
       "_id author content createdAt likes parent children"
     )
@@ -59,27 +60,31 @@ export async function GET(request: Request) {
 
     posts.forEach((post) => {
       if (authorId) {
-        post.liked = post.likes
-          .map((like: ObjectId) => like.toString())
-          .includes(authorId);
+        post.liked =
+          post?.likes
+            ?.map((like: Types.ObjectId) => like.toString())
+            .includes(authorId) ?? false;
       } else {
         post.liked = false;
       }
 
-      post.likeCount = post.likes.length;
+      post.likeCount = post?.likes?.length ?? 0;
       delete post.likes;
-      post.children = post.children.length || 0;
+      post.replyCount = post?.children?.length ?? 0;
+      delete post.children;
       if (post.parent) {
         if (authorId) {
-          post.parent.liked = post.parent.likes
-            .map((like: ObjectId) => like.toString())
-            .includes(authorId);
+          post.parent.liked =
+            post?.parent?.likes
+              ?.map((like: Types.ObjectId) => like.toString())
+              .includes(authorId) ?? false;
         } else {
           post.parent.liked = false;
         }
-        post.parent.likeCount = post.parent.likes.length;
+        post.parent.likeCount = post.parent?.likes?.length ?? 0;
         delete post.parent.likes;
-        post.parent.children = post.parent.children.length;
+        post.parent.replyCount = post.parent?.children?.length ?? 0;
+        delete post.parent.children;
         if (post.parent.isDeleted) {
           post.parent.content = "deleted";
         }

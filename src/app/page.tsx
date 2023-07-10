@@ -1,33 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { IPost } from "@/constants/schemas/post";
 import Post from "@/components/post";
-import { ParentPostType } from "@/components/post";
 import Input from "@/components/form/input";
 import { AiOutlineSend } from "react-icons/ai";
 import { useSession } from "next-auth/react";
 import Spinner from "@/components/loaders/spinner";
 import usePagination from "@/hooks/usePagination";
 import InfiniteScroll from "react-infinite-scroll-component";
-
-type Author = {
-  _id: string;
-  name: string;
-  username: string;
-};
-
-type PostType = Omit<
-  IPost,
-  "updatedAt" | "__v" | "deletedAt" | "likes" | "parent" | "children" | "author"
-> & {
-  _id: string;
-  author: Author;
-  liked: boolean;
-  likeCount: number;
-  parent?: ParentPostType;
-  children: number;
-};
+import { IPostWithAuthorAndParent } from "@/types/post";
 
 const fetchPosts = async (url: string) => {
   const res = await fetch(url);
@@ -38,7 +19,7 @@ const fetchPosts = async (url: string) => {
 export default function Home() {
   const { status } = useSession();
   const [newPost, setNewPost] = useState("");
-  const [selfPosts, setSelfPosts] = useState<PostType[]>([]);
+  const [selfPosts, setSelfPosts] = useState<IPostWithAuthorAndParent[]>([]);
 
   const {
     flattenedData: posts,
@@ -47,7 +28,11 @@ export default function Home() {
     size,
     setSize,
     hasReachedEnd,
-  } = usePagination<PostType>("/api/posts/list", 10, fetchPosts);
+  } = usePagination<IPostWithAuthorAndParent>(
+    "/api/posts/list",
+    10,
+    fetchPosts
+  );
 
   function handleCreatePost(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -106,21 +91,8 @@ export default function Home() {
       )}
 
       {selfPosts.length > 0 &&
-        selfPosts.map((post, index) => (
-          <Post
-            key={index}
-            username={post.author.username}
-            name={post.author.name}
-            content={post.content}
-            createdAt={post.createdAt}
-            liked={post.liked}
-            likeCount={post.likeCount}
-            replyCount={post.children}
-            _id={post._id}
-          />
-        ))}
+        selfPosts.map((post, index) => <Post key={index} post={post} />)}
 
-      {/* TODO: Has its own scrollbar when loading more posts */}
       <InfiniteScroll
         dataLength={posts?.length ?? 0}
         next={() => setSize(size + 1)}
@@ -131,35 +103,9 @@ export default function Home() {
         style={{ overflow: "hidden" }}
       >
         {Array.isArray(posts) &&
-          posts.map(
-            (
-              {
-                author,
-                content,
-                createdAt,
-                liked,
-                likeCount,
-                parent,
-                children: replyCount,
-                _id,
-              },
-              index
-            ) => (
-              <Post
-                key={index}
-                username={author?.username}
-                name={author?.name}
-                content={content}
-                createdAt={createdAt}
-                liked={liked}
-                likeCount={likeCount}
-                parent={parent}
-                replyCount={replyCount}
-                _id={_id}
-                containerClassName="max-w-2xl"
-              />
-            )
-          )}
+          posts.map((post, index) => (
+            <Post key={index} post={post} containerClassName="max-w-2xl" />
+          ))}
       </InfiniteScroll>
     </main>
   );

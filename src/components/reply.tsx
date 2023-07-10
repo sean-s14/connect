@@ -9,10 +9,11 @@ import Spinner from "@/components/loaders/spinner";
 import convertDate from "@/utils/convertDate";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { IPostAuthor } from "@/types/post";
 
 export default function Reply(props: {
   _id: string;
-  author: { _id: string; name: string; username: string };
+  author?: IPostAuthor;
   content: string;
   liked: boolean;
   likeCount: number;
@@ -21,7 +22,7 @@ export default function Reply(props: {
   createdAt: Date;
 }) {
   const {
-    author = { _id: "", name: "", username: "" },
+    author = { _id: "", name: "", username: "", image: "" },
     content = "",
     replyCount = 0,
     isDeleted = false,
@@ -73,8 +74,20 @@ export default function Reply(props: {
         onClick={viewProfile}
         role="link"
       >
-        <span className="font-normal text-sm">{author?.name}</span>·
-        <span className="text-slate-500 text-sm">@{author?.username}</span>·
+        <span
+          className={`${!author?.name && "line-through"} font-normal text-sm`}
+        >
+          {author?.name ?? "deleted"}
+        </span>
+        ·
+        <span
+          className={`${
+            !author?.name && "line-through"
+          } text-slate-500 text-sm`}
+        >
+          @{author?.username ?? "deleted"}
+        </span>
+        ·
         <span className="text-slate-500 text-sm">{convertDate(createdAt)}</span>
       </div>
 

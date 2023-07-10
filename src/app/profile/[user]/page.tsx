@@ -1,42 +1,18 @@
 "use client";
 
 import { IUser } from "@/constants/schemas/user";
-import { IPost } from "@/constants/schemas/post";
 import Image from "next/image";
 import Link from "next/link";
 import { IoCalendar } from "react-icons/io5";
 import { FiEdit } from "react-icons/fi";
-import Post, { ParentPostType } from "@/components/post";
+import Post from "@/components/post";
 import { useSession } from "next-auth/react";
 import useSWR from "swr";
 import usePagination from "@/hooks/usePagination";
 import InfiniteScroll from "react-infinite-scroll-component";
 import Spinner from "@/components/loaders/spinner";
 import convertDate from "@/utils/convertDate";
-
-type OmmittedPostFields =
-  | "updatedAt"
-  | "__v"
-  | "deletedAt"
-  | "children"
-  | "likes"
-  | "author"
-  | "posts";
-
-type Author = {
-  _id: string;
-  name: string;
-  username: string;
-};
-
-type PostType = Omit<IPost, OmmittedPostFields> & {
-  _id: string;
-  author: Author;
-  liked: boolean;
-  likeCount: number;
-  children: number;
-  parent?: ParentPostType;
-};
+import { IPostWithAuthorAndParent } from "@/types/post";
 
 const fetchUser = async (url: string) => {
   const res = await fetch(url);
@@ -46,7 +22,7 @@ const fetchUser = async (url: string) => {
 
 const fetchPosts = async (url: string) => {
   const res = await fetch(url);
-  const { posts }: { posts: PostType[] } = await res.json();
+  const { posts }: { posts: IPostWithAuthorAndParent[] } = await res.json();
   return posts;
 };
 
@@ -66,7 +42,7 @@ export default function UserPage(props: { params: { user: string } }) {
     size: postSize,
     setSize: setPostSize,
     hasReachedEnd,
-  } = usePagination<PostType>(
+  } = usePagination<IPostWithAuthorAndParent>(
     `/api/posts/list?username=${props.params.user}`,
     10,
     fetchPosts
@@ -144,34 +120,7 @@ export default function UserPage(props: { params: { user: string } }) {
         >
           {posts &&
             posts.length > 0 &&
-            posts.map(
-              (
-                {
-                  _id,
-                  author,
-                  content,
-                  createdAt,
-                  liked,
-                  likeCount,
-                  children,
-                  parent,
-                },
-                index
-              ) => (
-                <Post
-                  key={index}
-                  name={author.name}
-                  username={author.username}
-                  content={content}
-                  createdAt={createdAt}
-                  liked={liked}
-                  likeCount={likeCount}
-                  parent={parent}
-                  replyCount={children}
-                  _id={_id}
-                />
-              )
-            )}
+            posts.map((post, index) => <Post key={index} post={post} />)}
         </InfiniteScroll>
       </div>
     </div>

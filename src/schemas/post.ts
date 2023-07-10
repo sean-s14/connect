@@ -1,5 +1,5 @@
 import { Schema, model, models } from "mongoose";
-import { IPost } from "@/constants/schemas/post";
+import { IPost } from "@/types/post";
 
 mongoose.Promise = global.Promise;
 

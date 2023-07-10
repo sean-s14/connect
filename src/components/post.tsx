@@ -15,69 +15,31 @@ import Modal from "@/components/modal";
 import Input from "@/components/form/input";
 import convertDate from "@/utils/convertDate";
 import Reply from "@/components/reply";
+import { IPostWithAuthorAndParent } from "@/types/post";
 
 const styles = {
   username: "text-slate-500 text-sm",
   date: "text-slate-500 text-sm",
 };
 
-type AuthorType = {
-  _id: string;
-  name: string;
-  username: string;
-};
-
-export type ParentPostType = {
-  author: { name: string; username: string; _id: string };
-  content: string;
-  createdAt: Date;
-  liked: boolean;
-  likeCount: number;
-  children: number;
-  _id: string;
-};
-
-export type ChildPostType = {
-  _id: string;
-  author: AuthorType;
-  content: string;
-  isDeleted: boolean;
-  liked: boolean;
-  likeCount: number;
-  children: number;
-  createdAt: Date;
-};
-
-// TODO: Indicate if a post has been liked by the user by changing the color of the like button this can be done by returning an extra field in the post object called 'liked' which is a boolean
-
 export default function Post(props: {
-  name: string;
-  username: string;
-  content: string;
-  createdAt: Date;
-  parent?: ParentPostType;
-  liked?: boolean;
-  likeCount?: number;
-  replyCount?: number;
-  replies?: ChildPostType[];
-  _id: string;
+  post: IPostWithAuthorAndParent;
   containerClassName?: string;
 }) {
   const {
-    name = "",
-    username = "",
+    author,
     content = "no content",
     createdAt,
     parent,
     replyCount = 0,
     replies = [],
     _id,
-    containerClassName = "",
-  } = props;
+  } = props.post;
+  const { containerClassName = "" } = props;
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [liked, setLiked] = useState(props.liked || false);
-  const [likeCount, setLikeCount] = useState(props.likeCount || 0);
+  const [liked, setLiked] = useState(props.post.liked || false);
+  const [likeCount, setLikeCount] = useState(props.post.likeCount || 0);
   const [likedLoading, setLikedLoading] = useState(false);
   const [deleted, setDeleted] = useState(false);
   const [reply, setReply] = useState("");
@@ -89,7 +51,7 @@ export default function Post(props: {
     e.stopPropagation();
     e.nativeEvent.stopImmediatePropagation();
     setLikedLoading(true);
-    fetch(`/api/posts?_id=${_id}&like=true`, {
+    fetch(`/api/posts?_id=${_id.toString()}&like=true`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -112,7 +74,7 @@ export default function Post(props: {
     e.stopPropagation();
     e.nativeEvent.stopImmediatePropagation();
     if (!confirm("Are you sure you want to delete this post?")) return;
-    fetch(`/api/posts?_id=${_id}`, {
+    fetch(`/api/posts?_id=${_id.toString()}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -133,7 +95,7 @@ export default function Post(props: {
     if (!session) return;
     if (!reply) return;
     setReplyLoading(true);
-    fetch(`/api/posts?parentId=${_id}`, {
+    fetch(`/api/posts?parentId=${_id.toString()}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -175,14 +137,16 @@ export default function Post(props: {
     e.preventDefault();
     e.stopPropagation();
     e.nativeEvent.stopImmediatePropagation();
-    router.push(`/profile/${username}/${_id}`);
+    router.push(`/profile/${author?.username}/${_id.toString()}`);
   }
 
   function viewParentPost(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
     e.preventDefault();
     e.stopPropagation();
     e.nativeEvent.stopImmediatePropagation();
-    router.push(`/profile/${parent?.author?.username}/${parent?._id}`);
+    router.push(
+      `/profile/${parent?.author?.username}/${parent?._id?.toString()}`
+    );
   }
 
   function viewProfile(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
@@ -191,7 +155,7 @@ export default function Post(props: {
     e.nativeEvent.stopImmediatePropagation();
     // TODO: When updating profile username, returning to the profile page will not work. Instead find profile by id and use the 'as' prop in the router.push() function like so:
     // router.push(`/profile/${username}`, `/profile/${userId}`);
-    router.push(`/profile/${username}`);
+    router.push(`/profile/${author?.username}`);
   }
 
   return (
@@ -212,9 +176,18 @@ export default function Post(props: {
         {/* Comment replying to */}
         <div className="flex flex-col gap-2 w-full">
           <div className="flex items-center gap-2">
-            <span>{name}</span>·
-            <span className={`${styles.username}`}>@{username}</span>·
-            <span className={`${styles.date}`}>{convertDate(createdAt)}</span>
+            <span className={`${!author?.name && "line-through"}`}>
+              {author?.name ?? "deleted"}
+            </span>
+            ·
+            <span
+              className={`${styles.username} ${
+                !author?.name && "line-through"
+              }`}
+            >
+              @{author?.username ?? "deleted"}
+            </span>
+            ·<span className={`${styles.date}`}>{convertDate(createdAt)}</span>
           </div>
           <p>{content}</p>
         </div>
@@ -223,7 +196,6 @@ export default function Post(props: {
 
         {/* User's reply */}
         <form className="w-full flex gap-3 items-center" onSubmit={handleReply}>
-          {/* TODO: Disable input whilst replyLoading is true */}
           <Input
             type="text"
             value={reply}
@@ -232,11 +204,16 @@ export default function Post(props: {
             name="reply"
             id="reply"
             multiline={true}
-            containerClassName="flex-1"
+            containerClassName={`flex-1 ${
+              replyLoading && "cursor-wait pointer-events-none opacity-50"
+            }`}
           />
           <button
-            className="bg-slate-900 rounded-lg p-2 hover:bg-slate-700 transition-colors"
+            className={`bg-slate-900 rounded-lg p-2 hover:bg-slate-700 transition-colors ${
+              replyLoading && "cursor-wait pointer-events-none"
+            }`}
             type="submit"
+            disabled={replyLoading}
           >
             {replyLoading ? (
               <Spinner style={{ width: 24, height: 24, borderWidth: 2 }} />
@@ -248,7 +225,7 @@ export default function Post(props: {
       </Modal>
 
       {/* Delete Button */}
-      {session?.user?.username === username && (
+      {session?.user?.username === author?.username && (
         <button
           className="cursor-pointer p-0.5 absolute right-5 top-5 rounded-full border border-red-400 hover:bg-red-400/30 transition-colors"
           onClick={handleDelete}
@@ -263,9 +240,18 @@ export default function Post(props: {
         role="link"
         className="flex items-center gap-2 font-semibold hover:bg-slate-700 transition-colors rounded-lg max-w-fit p-1 px-2 -ml-2"
       >
-        <span>{name}</span>·
-        <span className="text-slate-500 text-sm">@{username}</span>·
-        <div className="text-slate-500 text-sm">{convertDate(createdAt)}</div>
+        <span className={`${!author?.name && "line-through"}`}>
+          {author?.name ?? "deleted"}
+        </span>
+        ·
+        <span
+          className={`${
+            !author?.name && "line-through"
+          } text-slate-500 text-sm`}
+        >
+          @{author?.username ?? "deleted"}
+        </span>
+        ·<div className="text-slate-500 text-sm">{convertDate(createdAt)}</div>
       </div>
 
       {/* Content */}
@@ -294,12 +280,16 @@ export default function Post(props: {
           <p className="text-md text-slate-300">{parent?.content}</p>
           {/* Likes and replies */}
           <div className="flex gap-2">
-            <div className="py-1 px-3 rounded-3xl flex gap-3 items-center bg-slate-900 max-w-fit">
+            <div
+              className={`py-1 px-3 rounded-3xl flex gap-3 items-center max-w-fit bg-slate-900 ${
+                parent?.liked && "bg-slate-950"
+              }`}
+            >
               <span className="text-sm">{parent?.likeCount || 0}</span>
               <HandThumbUpIcon className="h-4 w-4" />
             </div>
             <div className="py-1 px-3 rounded-3xl flex gap-3 items-center bg-slate-900 max-w-fit">
-              <span className="text-sm">{parent?.children || 0}</span>
+              <span className="text-sm">{parent?.replyCount || 0}</span>
               <ChatBubbleBottomCenterIcon className="h-4 w-4" />
             </div>
           </div>
@@ -312,7 +302,8 @@ export default function Post(props: {
           {/* Like Count & Button */}
           <button
             className={`mt-2 py-1 px-4 rounded-3xl flex gap-3 items-center bg-slate-900 ${
-              status === "authenticated" && session?.user?.username !== username
+              status === "authenticated" &&
+              session?.user?.username !== author?.username
                 ? "hover:bg-slate-950 cursor-pointer"
                 : "cursor-default"
             } ${
@@ -320,7 +311,8 @@ export default function Post(props: {
             } transition-colors ease-in-out duration-300 max-w-fit`}
             onClick={handleLike}
             disabled={
-              status !== "authenticated" || session?.user?.username === username
+              status !== "authenticated" ||
+              session?.user?.username === author?.username
             }
           >
             {likedLoading ? (
@@ -368,19 +360,19 @@ export default function Post(props: {
                 isDeleted,
                 liked,
                 likeCount,
-                children,
+                replyCount,
                 createdAt,
               }) => (
-                <div key={_id}>
+                <div key={_id.toString()}>
                   <hr className="ml-3 my-0.5 w-0.5 h-5 bg-slate-100/40 border-none" />
                   <Reply
-                    _id={_id}
+                    _id={_id.toString()}
                     author={author}
                     content={content}
-                    isDeleted={isDeleted}
+                    isDeleted={isDeleted ?? false}
                     liked={liked}
                     likeCount={likeCount}
-                    replyCount={children}
+                    replyCount={replyCount}
                     createdAt={createdAt}
                   />
                 </div>
