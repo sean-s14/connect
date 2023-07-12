@@ -1,6 +1,6 @@
 "use client";
 
-import { IUser } from "@/constants/schemas/user";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { IoCalendar } from "react-icons/io5";
@@ -13,6 +13,8 @@ import InfiniteScroll from "react-infinite-scroll-component";
 import Spinner from "@/components/loaders/spinner";
 import convertDate from "@/utils/convertDate";
 import { IPostWithAuthorAndParent } from "@/types/post";
+import { IUser } from "@/types/user";
+import { IFollowResponse } from "@/types/follow";
 
 const fetchUser = async (url: string) => {
   const res = await fetch(url);
@@ -26,7 +28,14 @@ const fetchPosts = async (url: string) => {
   return posts;
 };
 
+const fetchFollowers = async (url: string) => {
+  const res = await fetch(url);
+  const followers: IFollowResponse = await res.json();
+  return followers;
+};
+
 // TODO: When displaying /profile/{username} instead use the 'as' prop to /{username}
+// TODO: Add links to pages with all the users you follow and all users that follow you
 export default function UserPage(props: { params: { user: string } }) {
   const { data: session, status } = useSession();
   const {
@@ -34,6 +43,15 @@ export default function UserPage(props: { params: { user: string } }) {
     error: userError,
     isLoading: userIsLoading,
   } = useSWR<IUser>(`/api/users/${props.params.user}`, fetchUser);
+
+  const {
+    data: followers,
+    error: followersError,
+    isLoading: followersIsLoading,
+  } = useSWR<IFollowResponse>(
+    () => (user?._id ? `/api/follow?id=${user._id}` : null),
+    fetchFollowers
+  );
 
   const {
     flattenedData: posts,
@@ -48,7 +66,58 @@ export default function UserPage(props: { params: { user: string } }) {
     fetchPosts
   );
 
-  if (userIsLoading || postsIsLoading) {
+  const [following, setFollowing] = useState(false);
+  const [followingIsLoading, setFollowingIsLoading] = useState(false);
+
+  useEffect(() => {
+    setFollowing(!!followers?.following);
+  }, [followers]);
+
+  function handleFollow(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
+    e.preventDefault();
+    if (!user) {
+      // TODO: Show error message
+      return;
+    }
+    setFollowingIsLoading(true);
+    fetch("/api/follow", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: user._id,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(data);
+        setFollowing(data?.followed);
+      })
+      .catch((err) => console.log(err))
+      .finally(() => setFollowingIsLoading(false));
+
+    console.log("follow");
+  }
+
+  function handleUnfollow(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
+    e.preventDefault();
+    if (session?.user && user?._id && following) {
+      setFollowingIsLoading(true);
+      fetch(`/api/follow?id=${user._id}`, {
+        method: "DELETE",
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          console.log(data);
+          setFollowing(!data?.unfollowed);
+        })
+        .catch((err) => console.log(err))
+        .finally(() => setFollowingIsLoading(false));
+    }
+  }
+
+  if (userIsLoading || postsIsLoading || followersIsLoading) {
     return (
       <div className="min-w-full min-h-screen flex items-center justify-center">
         <Spinner style={{ width: 80, height: 80, borderWidth: 8 }} />
@@ -56,7 +125,7 @@ export default function UserPage(props: { params: { user: string } }) {
     );
   }
 
-  if (userError || postsError) {
+  if (userError || postsError || followersError) {
     return <div>error</div>;
   }
 
@@ -64,6 +133,7 @@ export default function UserPage(props: { params: { user: string } }) {
     <div
       className={`flex flex-col items-start justify-start p-10 min-w-100 min-h-screen transition-opacity duration-500`}
     >
+      {/* Profile Image */}
       {user?.image ? (
         <Image
           src={user?.image || ""}
@@ -76,6 +146,8 @@ export default function UserPage(props: { params: { user: string } }) {
       ) : (
         <div className="w-[120px] h-[120px]"></div>
       )}
+
+      {/* Name, Username, Bio */}
       <div className="flex flex-col gap-2 mt-5 w-full max-w-2xl self-center relative">
         <div className="text-xl font-bold">{user?.name}</div>
         {user?.username && (
@@ -94,16 +166,59 @@ export default function UserPage(props: { params: { user: string } }) {
           <div className="text-md font-normal text-slate-300">{user?.bio}</div>
         )}
 
-        {/* Link to Profile Management page */}
-        {session?.user?.username === props.params.user && (
-          <Link
-            href="/profile"
-            className="flex items-center gap-2 absolute right-4 bg-slate-900 rounded-lg border-2 border-slate-950 py-1 px-3 text-slate-50 hover:bg-slate-950 transition-colors duration-500"
-          >
-            <FiEdit className="h-4 w-4" />
-            <span>Edit Profile</span>
-          </Link>
-        )}
+        {/* Link to Profile Management page / Follow Button */}
+        <div className="absolute right-4">
+          {session?.user?.username === props.params.user ? (
+            // Link to Profile Management
+            <Link
+              href="/profile"
+              className="flex items-center gap-2 bg-slate-900 rounded-lg border-2 border-slate-950 py-1 px-3 text-slate-50 hover:bg-slate-950 transition-colors duration-500"
+            >
+              <FiEdit className="h-4 w-4" />
+              <span>Edit Profile</span>
+            </Link>
+          ) : (
+            // Follow Button
+            <button
+              className={`rounded-lg bg-slate-900 border-2 border-slate-600 hover:bg-slate-800 hover:border-slate-600 transition-colors w-24 h-10 flex items-center justify-center ${
+                followingIsLoading && "cursor-wait"
+              }`}
+              onClick={following ? handleUnfollow : handleFollow}
+              disabled={followingIsLoading}
+              onMouseEnter={() => {
+                if (following) {
+                  document.getElementById("following-id")!.innerHTML =
+                    "Unfollow";
+                }
+              }}
+              onMouseLeave={() => {
+                if (following) {
+                  document.getElementById("following-id")!.innerHTML =
+                    "Following";
+                }
+              }}
+            >
+              {followingIsLoading ? (
+                <Spinner style={{ width: 20, height: 20, borderWidth: 3 }} />
+              ) : (
+                <span id={"following-id"}>
+                  {following ? "Following" : "Follow"}
+                </span>
+              )}
+            </button>
+          )}
+        </div>
+
+        {/* Following and Followers */}
+        <div className="flex items-center gap-3 mt-4">
+          <div className="p-1 px-2 rounded-lg bg-slate-900 border-2 border-slate-700">
+            {followers?.followerCount ?? 0} follower
+            {followers?.followerCount != 1 && "s"}
+          </div>
+          <div className="p-1 px-2 rounded-lg bg-slate-900 border-2 border-slate-700">
+            following {followers?.followingCount ?? 0}
+          </div>
+        </div>
       </div>
 
       {/* Post Container */}

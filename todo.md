@@ -12,7 +12,6 @@
 
 ## Pages
 
-- News Feed (Home)
 - Error
 - 404
 
@@ -23,7 +22,6 @@
 - Navbar
   - Search Bar
   - Tabs to switch between 'Explore' and 'Following'
-- Pagination
 
 ---
 

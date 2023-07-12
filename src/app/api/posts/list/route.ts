@@ -21,7 +21,6 @@ export async function GET(request: Request) {
 
     if (params?.username) {
       var author = await User.findOne({ username: params.username }, "_id", {});
-      console.log("Author: ", author);
       if (!author) {
         return NextResponse.json({ err: "User not found!" }, { status: 404 });
       }

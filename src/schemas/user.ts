@@ -1,5 +1,6 @@
 import { Schema, model, models } from "mongoose";
-import { IUser, GENDERS } from "@/constants/schemas/user";
+import { GENDERS } from "@/constants/schemas/user";
+import { IUser } from "@/types/user";
 
 mongoose.Promise = global.Promise;
 
