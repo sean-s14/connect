@@ -12,8 +12,6 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const params = Object.fromEntries(url.searchParams.entries());
 
-    console.log("GET - /api/follow -", params);
-
     const followerCount = await Follow.find({ following: params.id })
       .distinct("follower")
       .countDocuments();

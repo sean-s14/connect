@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import mongooseConnect from "@/config/mongooseConnect";
 import User from "@/schemas/user";
 import Post from "@/schemas/post";
+import Follow from "@/schemas/follow";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { Types } from "mongoose";
@@ -19,17 +20,34 @@ export async function GET(request: Request) {
     const limit = parseInt(params.limit as string) || 10;
     const skip = (page - 1) * limit;
 
+    const query: any = {
+      isDeleted: false,
+    };
+
     if (params?.username) {
       var author = await User.findOne({ username: params.username }, "_id", {});
       if (!author) {
         return NextResponse.json({ err: "User not found!" }, { status: 404 });
       }
-    }
+      query.author = author._id;
+    } else if (params?.following === "true") {
+      // Query posts only from users that the current user follows
+      if (!session?.user?.id) {
+        return NextResponse.json(
+          { err: "You must be logged in to see your feed!" },
+          { status: 401 }
+        );
+      }
 
-    const query = {
-      isDeleted: false,
-      ...(author && { author: author._id }),
-    };
+      // Get the users that the current user follows
+      let following = await Follow.find(
+        { follower: session.user.id },
+        "-_id following"
+      ).lean();
+
+      following = following.map((follow) => follow.following.toString());
+      query.author = { $in: following };
+    }
 
     // TODO: Exclude posts who dont have an author
     const posts: IPostWithAuthorAndParent[] = await Post.find(

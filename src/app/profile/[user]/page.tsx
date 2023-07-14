@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { IoCalendar } from "react-icons/io5";
@@ -48,6 +48,7 @@ export default function UserPage(props: { params: { user: string } }) {
     data: followers,
     error: followersError,
     isLoading: followersIsLoading,
+    mutate: mutateFollowers,
   } = useSWR<IFollowResponse>(
     () => (user?._id ? `/api/follow?id=${user._id}` : null),
     fetchFollowers
@@ -66,12 +67,7 @@ export default function UserPage(props: { params: { user: string } }) {
     fetchPosts
   );
 
-  const [following, setFollowing] = useState(false);
   const [followingIsLoading, setFollowingIsLoading] = useState(false);
-
-  useEffect(() => {
-    setFollowing(!!followers?.following);
-  }, [followers]);
 
   function handleFollow(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
     e.preventDefault();
@@ -91,26 +87,36 @@ export default function UserPage(props: { params: { user: string } }) {
     })
       .then((res) => res.json())
       .then((data) => {
-        console.log(data);
-        setFollowing(data?.followed);
+        mutateFollowers(
+          {
+            followerCount: (followers?.followerCount ?? 0) + 1,
+            followingCount: followers?.followingCount ?? 0,
+            following: true,
+          },
+          false
+        );
       })
       .catch((err) => console.log(err))
       .finally(() => setFollowingIsLoading(false));
-
-    console.log("follow");
   }
 
   function handleUnfollow(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
     e.preventDefault();
-    if (session?.user && user?._id && following) {
+    if (session?.user && user?._id && !!followers?.following) {
       setFollowingIsLoading(true);
       fetch(`/api/follow?id=${user._id}`, {
         method: "DELETE",
       })
         .then((res) => res.json())
         .then((data) => {
-          console.log(data);
-          setFollowing(!data?.unfollowed);
+          mutateFollowers(
+            {
+              followerCount: (followers?.followerCount ?? 0) - 1,
+              followingCount: followers?.followingCount ?? 0,
+              following: false,
+            },
+            false
+          );
         })
         .catch((err) => console.log(err))
         .finally(() => setFollowingIsLoading(false));
@@ -183,16 +189,16 @@ export default function UserPage(props: { params: { user: string } }) {
               className={`rounded-lg bg-slate-900 border-2 border-slate-600 hover:bg-slate-800 hover:border-slate-600 transition-colors w-24 h-10 flex items-center justify-center ${
                 followingIsLoading && "cursor-wait"
               }`}
-              onClick={following ? handleUnfollow : handleFollow}
+              onClick={!!followers?.following ? handleUnfollow : handleFollow}
               disabled={followingIsLoading}
               onMouseEnter={() => {
-                if (following) {
+                if (followers?.following) {
                   document.getElementById("following-id")!.innerHTML =
                     "Unfollow";
                 }
               }}
               onMouseLeave={() => {
-                if (following) {
+                if (followers?.following) {
                   document.getElementById("following-id")!.innerHTML =
                     "Following";
                 }
@@ -202,7 +208,7 @@ export default function UserPage(props: { params: { user: string } }) {
                 <Spinner style={{ width: 20, height: 20, borderWidth: 3 }} />
               ) : (
                 <span id={"following-id"}>
-                  {following ? "Following" : "Follow"}
+                  {followers?.following ? "Following" : "Follow"}
                 </span>
               )}
             </button>
