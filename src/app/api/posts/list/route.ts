@@ -49,7 +49,6 @@ export async function GET(request: Request) {
       query.author = { $in: following };
     }
 
-    // TODO: Exclude posts who dont have an author
     const posts: IPostWithAuthorAndParent[] = await Post.find(
       query,
       "_id author content createdAt likes parent children"
@@ -74,6 +73,10 @@ export async function GET(request: Request) {
       .lean();
 
     const authorId = session?.user?.id;
+
+    // Remove posts without an author
+    // TODO: This could mean less than the limit of posts are returned
+    posts.filter((post) => post.author);
 
     posts.forEach((post) => {
       if (authorId) {

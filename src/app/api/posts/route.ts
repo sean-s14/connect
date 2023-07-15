@@ -109,7 +109,6 @@ export async function GET(request: Request) {
   }
 }
 
-// TODO: Do not accept request with parent that is deleted
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -125,6 +124,13 @@ export async function POST(request: Request) {
     const params = Object.fromEntries(url.searchParams.entries());
 
     if (params?.parentId) {
+      const parentPost = await Post.findOne({ _id: params?.parentId });
+      if (parentPost?.isDeleted) {
+        return NextResponse.json(
+          { err: "Parent post is deleted!" },
+          { status: 400 }
+        );
+      }
       body.parent = [params.parentId];
     }
 

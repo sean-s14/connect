@@ -27,7 +27,7 @@ export default function Home() {
   const {
     flattenedData: posts,
     error,
-    isLoading,
+    isLoading: isLoadingPosts,
     size,
     setSize,
     hasReachedEnd,
@@ -37,19 +37,15 @@ export default function Home() {
     fetchPosts
   );
 
-  if (status === "loading" || isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Spinner style={{ width: 80, height: 80, borderWidth: 4 }} />
-      </div>
-    );
-  }
-
   // TODO: Build out error page
   if (error) return <div>Error: {error}</div>;
 
   return (
-    <main className="pb-8 flex flex-col gap-10 items-center min-h-screen">
+    <main
+      className={`pb-8 flex flex-col gap-10 items-center min-h-screen ${
+        status === "unauthenticated" && "pt-8"
+      }`}
+    >
       {status === "authenticated" && (
         <div className="grid grid-cols-2 w-full">
           {TABS.map((tab, index) => (
@@ -66,34 +62,43 @@ export default function Home() {
         </div>
       )}
 
-      <div className="w-full max-w-[90%]">
-        {status === "authenticated" && (
+      {status === "authenticated" && (
+        <div className="w-full max-w-[90%]">
           <NewPost
             onPostCreated={(post) => setSelfPosts((prev) => [post, ...prev])}
-            containerClassName="mb-10"
           />
-        )}
+        </div>
+      )}
 
-        {selfPosts.length > 0 &&
-          selfPosts.map((post, index) => <Post key={index} post={post} />)}
+      {status === "loading" || isLoadingPosts ? (
+        <div className="flex min-h-screen items-center justify-center">
+          <Spinner style={{ width: 80, height: 80, borderWidth: 4 }} />
+        </div>
+      ) : (
+        <div className="w-full max-w-[90%]">
+          {selfPosts.length > 0 &&
+            selfPosts.map((post, index) => <Post key={index} post={post} />)}
 
-        <InfiniteScroll
-          dataLength={posts?.length ?? 0}
-          next={() => setSize(size + 1)}
-          hasMore={!hasReachedEnd}
-          loader={<Spinner style={{ width: 40, height: 40, borderWidth: 3 }} />}
-          endMessage={
-            <p className="text-slate-500 text-center">No more posts</p>
-          }
-          className="flex flex-col gap-10 items-center"
-          style={{ overflow: "hidden" }}
-        >
-          {Array.isArray(posts) &&
-            posts.map((post, index) => (
-              <Post key={index} post={post} containerClassName="max-w-2xl" />
-            ))}
-        </InfiniteScroll>
-      </div>
+          <InfiniteScroll
+            dataLength={posts?.length ?? 0}
+            next={() => setSize(size + 1)}
+            hasMore={!hasReachedEnd}
+            loader={
+              <Spinner style={{ width: 40, height: 40, borderWidth: 3 }} />
+            }
+            endMessage={
+              <p className="text-slate-500 text-center">No more posts</p>
+            }
+            className="flex flex-col gap-10 items-center"
+            style={{ overflow: "hidden" }}
+          >
+            {Array.isArray(posts) &&
+              posts.map((post, index) => (
+                <Post key={index} post={post} containerClassName="max-w-2xl" />
+              ))}
+          </InfiniteScroll>
+        </div>
+      )}
     </main>
   );
 }

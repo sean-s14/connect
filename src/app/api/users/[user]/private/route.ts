@@ -19,7 +19,6 @@ export async function GET(request: Request) {
   }
 }
 
-// get server session from next-auth
 export async function PATCH(request: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -28,10 +27,11 @@ export async function PATCH(request: Request) {
 
     const user = await User.findOneAndUpdate(
       { _id: session?.user?.id },
-      { ...body }
+      { ...body },
+      { new: true }
     );
 
-    return NextResponse.json(user);
+    return NextResponse.json({ user });
   } catch (error) {
     console.log(error);
     return NextResponse.json({ err: "Failed to update user" });

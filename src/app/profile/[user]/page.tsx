@@ -34,8 +34,8 @@ const fetchFollowers = async (url: string) => {
   return followers;
 };
 
-// TODO: When displaying /profile/{username} instead use the 'as' prop to /{username}
 // TODO: Add links to pages with all the users you follow and all users that follow you
+// TODO: Display error page if user doesn't exist
 export default function UserPage(props: { params: { user: string } }) {
   const { data: session, status } = useSession();
   const {
@@ -126,7 +126,7 @@ export default function UserPage(props: { params: { user: string } }) {
   if (userIsLoading || postsIsLoading || followersIsLoading) {
     return (
       <div className="min-w-full min-h-screen flex items-center justify-center">
-        <Spinner style={{ width: 80, height: 80, borderWidth: 8 }} />
+        <Spinner style={{ width: 80, height: 80, borderWidth: 4 }} />
       </div>
     );
   }
@@ -174,7 +174,7 @@ export default function UserPage(props: { params: { user: string } }) {
 
         {/* Link to Profile Management page / Follow Button */}
         <div className="absolute right-4">
-          {session?.user?.username === props.params.user ? (
+          {session?.user?.id === user?._id ? (
             // Link to Profile Management
             <Link
               href="/profile"

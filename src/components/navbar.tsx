@@ -15,7 +15,7 @@ import Image from "next/image";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 
-const links = [
+let links = [
   {
     href: "/",
     text: "Home",
@@ -50,6 +50,7 @@ export default function Navbar() {
   }
 
   if (status === "authenticated") {
+    console.log("Generating auth links:", session?.user?.username);
     // Check if an object with text 'Profile' exists in the links array
     // If it does, do nothing, otherwise, add it to the beginning of the array
     if (!authenticatedLinks.find((link) => link.text === "Profile")) {
@@ -66,6 +67,14 @@ export default function Navbar() {
         (link) => !links.find((l) => l.text === link.text)
       )
     );
+
+    // Replace the profile link with the user's username
+    links = links.map((link) => {
+      if (link.text === "Profile") {
+        link.href = `/profile/${session?.user?.username}`;
+      }
+      return link;
+    });
   }
 
   function handleSignOut() {
@@ -133,7 +142,7 @@ export default function Navbar() {
 
             {/* Authenticated Links */}
             <div className={`transition-opacity duration-300`}>
-              {status === "authenticated" ? (
+              {status === "loading" ? null : status === "authenticated" ? (
                 <button
                   className="bg-slate-700 rounded-lg p-2 w-52 flex justify-center items-center gap-4"
                   onClick={handleSignOut}
@@ -208,7 +217,7 @@ export default function Navbar() {
             status === "loading" && "opacity-0 pointer-events-none"
           }`}
         >
-          {status === "authenticated" ? (
+          {status === "loading" ? null : status === "authenticated" ? (
             <button
               className="hover:bg-slate-700 p-3 rounded-full text-center flex gap-1 justify-around items-center transition-colors group relative"
               onClick={handleSignOut}
@@ -281,7 +290,7 @@ export default function Navbar() {
             status === "loading" && "opacity-0 pointer-events-none"
           }`}
         >
-          {status === "authenticated" ? (
+          {status === "loading" ? null : status === "authenticated" ? (
             <button
               className="p-2 btn-outline w-32 text-center flex gap-1 justify-around items-center transition-colors"
               onClick={handleSignOut}

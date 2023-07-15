@@ -11,7 +11,6 @@ const fetchPost = async (url: string) => {
   return post;
 };
 
-// TODO: Find way to display new replies without refreshing page
 export default function PostPage({
   params,
 }: {
@@ -21,6 +20,7 @@ export default function PostPage({
     data: post,
     error,
     isLoading,
+    mutate: mutatePost,
   } = useSWR<IPostWithAuthorAndParent>(
     `/api/posts?_id=${params.post}`,
     fetchPost
@@ -39,7 +39,11 @@ export default function PostPage({
   return (
     <div className="pt-10 min-w-full flex flex-col items-center">
       {post ? (
-        <Post post={post} containerClassName="max-w-[90%]" />
+        <Post
+          post={post}
+          containerClassName="max-w-[90%]"
+          onUpdate={mutatePost}
+        />
       ) : (
         <div>Post not found</div>
       )}

@@ -24,6 +24,7 @@ const styles = {
 
 export default function Post(props: {
   post: IPostWithAuthorAndParent;
+  onUpdate?: () => void;
   containerClassName?: string;
 }) {
   const {
@@ -45,6 +46,7 @@ export default function Post(props: {
   const [reply, setReply] = useState("");
   const [replyLoading, setReplyLoading] = useState(false);
   const [replyModalOpen, setReplyModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   function handleLike(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
     e.preventDefault();
@@ -73,7 +75,6 @@ export default function Post(props: {
     e.preventDefault();
     e.stopPropagation();
     e.nativeEvent.stopImmediatePropagation();
-    if (!confirm("Are you sure you want to delete this post?")) return;
     fetch(`/api/posts?_id=${_id.toString()}`, {
       method: "DELETE",
       headers: {
@@ -106,6 +107,7 @@ export default function Post(props: {
       .then((data) => {
         const { post } = data;
         console.log(post);
+        props?.onUpdate?.();
       })
       .catch((err) => console.log(err))
       .finally(() => {
@@ -133,6 +135,24 @@ export default function Post(props: {
     setReplyModalOpen(false);
   }
 
+  function openDeleteModal(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
+    e.preventDefault();
+    e.stopPropagation();
+    e.nativeEvent.stopImmediatePropagation();
+    setDeleteModalOpen(true);
+  }
+
+  function closeDeleteModal(
+    e?: React.MouseEvent<HTMLButtonElement, MouseEvent>
+  ) {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.nativeEvent.stopImmediatePropagation();
+    }
+    setDeleteModalOpen(false);
+  }
+
   function viewPost(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
     e.preventDefault();
     e.stopPropagation();
@@ -154,7 +174,7 @@ export default function Post(props: {
     e.stopPropagation();
     e.nativeEvent.stopImmediatePropagation();
     // TODO: When updating profile username, returning to the profile page will not work. Instead find profile by id and use the 'as' prop in the router.push() function like so:
-    // router.push(`/profile/${username}`, `/profile/${userId}`);
+    // router.push(`/profile/${username}`, `/profile/${author._id}`);
     router.push(`/profile/${author?.username}`);
   }
 
@@ -166,6 +186,33 @@ export default function Post(props: {
       onClick={viewPost}
       role="link"
     >
+      {/* Confirm Delete Modal */}
+      <Modal
+        open={deleteModalOpen}
+        onClose={closeDeleteModal}
+        containerClassName="flex justify-center items-center cursor-default"
+        modalClassName="max-w-[90%] w-[400px] bg-slate-800 p-6 rounded-xl flex flex-col items-center"
+      >
+        <span>Are you sure you want to delete this post?</span>
+        <span className="text-slate-500 text-sm">
+          This action is irriversible
+        </span>
+        <div className="flex gap-12 mt-6">
+          <button
+            onClick={closeDeleteModal}
+            className="bg-slate-900 hover:bg-slate-950 py-1 w-20 rounded"
+          >
+            No
+          </button>
+          <button
+            onClick={handleDelete}
+            className="bg-slate-900/60 hover:bg-red-800/50 py-1 w-20 rounded"
+          >
+            Yes
+          </button>
+        </div>
+      </Modal>
+
       {/* Reply Modal */}
       <Modal
         open={replyModalOpen}
@@ -228,7 +275,7 @@ export default function Post(props: {
       {session?.user?.username === author?.username && (
         <button
           className="cursor-pointer p-0.5 absolute right-5 top-5 rounded-full border border-red-400 hover:bg-red-400/30 transition-colors"
-          onClick={handleDelete}
+          onClick={openDeleteModal}
         >
           <XMarkIcon className="h-7 w-7 text-red-400" />
         </button>

@@ -4,6 +4,9 @@ import { useState, useReducer, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import Input from "@/components/form/input";
 import { capitalise } from "@sean14/utils";
+import Spinner from "@/components/loaders/spinner";
+import { AiOutlineArrowLeft } from "react-icons/ai";
+import { useRouter } from "next/navigation";
 
 const USER_FIELDS = [
   { field: "name" },
@@ -13,8 +16,12 @@ const USER_FIELDS = [
 ];
 
 export default function UserEditPage() {
-  const { data: session } = useSession({ required: true });
+  const router = useRouter();
+  const { data: session, update: updateSession } = useSession({
+    required: true,
+  });
   const [loading, setLoading] = useState(true); // loading state for fetching user data
+  const [submitLoading, setSubmitLoading] = useState(false); // loading state for submitting form
 
   // create a useReducer hook to handle form state
   const [formState, dispatch] = useReducer(formReducer, {
@@ -25,8 +32,8 @@ export default function UserEditPage() {
     // image: "", TODO: add image upload
   });
 
+  // fetch user data by username
   useEffect(() => {
-    // fetch user data by username
     setLoading(true);
     const username = session?.user?.username;
     if (username) {
@@ -75,6 +82,7 @@ export default function UserEditPage() {
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     // make patch request to update user
+    setSubmitLoading(true);
     fetch(`/api/users/${session?.user?.username}/private`, {
       method: "PATCH",
       headers: {
@@ -83,14 +91,37 @@ export default function UserEditPage() {
       body: JSON.stringify(formState),
     })
       .then((res) => res.json())
-      .then((data) => {})
+      .then((data) => {
+        updateSession();
+      })
       .catch((err) => {
         console.log(err);
+      })
+      .finally(() => {
+        setSubmitLoading(false);
       });
   }
 
   return (
-    <div className="min-h-screen min-w-full p-5 flex flex-col items-center justify-center">
+    <div className="min-h-screen min-w-full p-5 relative flex flex-col items-center justify-center">
+      {/* Go back button */}
+      <button
+        className="absolute top-10 left-10 rounded flex items-center gap-2 bg-slate-800 hover:bg-slate-950 py-2 px-3"
+        onClick={() =>
+          router.push(
+            `/profile/${
+              formState.username !== ""
+                ? formState.username
+                : session?.user?.username
+            }`
+          )
+        }
+      >
+        <AiOutlineArrowLeft width={5} height={5} />
+        <span>Go back</span>
+      </button>
+
+      {/* Form */}
       <form
         onSubmit={(e) => handleSubmit(e)}
         className={`${
@@ -109,7 +140,13 @@ export default function UserEditPage() {
             multiline={multiline}
           />
         ))}
-        <button className="btn btn-solid p-1">Save Changes</button>
+        <button className="btn btn-solid p-1 h-10 flex items-center justify-center">
+          {submitLoading ? (
+            <Spinner style={{ width: 24, height: 24, borderWidth: 3 }} />
+          ) : (
+            <span>Save Changes</span>
+          )}
+        </button>
       </form>
     </div>
   );
