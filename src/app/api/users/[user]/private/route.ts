@@ -29,10 +29,11 @@ export async function PATCH(request: Request) {
 
     if (body?.image) {
       const user = await User.findOne({ _id: session?.user?.id });
-      if (user?.image) {
+      if (user?.image.includes("supabase")) {
+        const image = user.image.split("profile-images/")[1];
         const { data, error } = await supabase.storage
           .from("profile-images")
-          .remove([user.image]);
+          .remove([image]);
         if (error) {
           console.log(error);
         }

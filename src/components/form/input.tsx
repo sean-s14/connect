@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useEffect } from "react";
+import { IconType } from "react-icons/lib";
 
 interface InputProps {
   label?: string;
@@ -20,6 +21,9 @@ interface InputProps {
   containerClassName?: string;
   textAreaClassName?: string;
   inputClassName?: string;
+  Icon?: IconType;
+  iconPosition?: "left" | "right";
+  iconClassName?: string;
 }
 
 export default function Input(props: InputProps) {
@@ -38,6 +42,9 @@ export default function Input(props: InputProps) {
     containerClassName = "",
     textAreaClassName = "",
     inputClassName = "",
+    Icon,
+    iconPosition = "left",
+    iconClassName = "",
   } = props;
 
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
@@ -74,17 +81,27 @@ export default function Input(props: InputProps) {
           ref={textAreaRef}
         ></textarea>
       ) : (
-        <input
-          className={`rounded bg-slate-900 outline-slate-600 outline outline-2 focus:outline-slate-300 text-slate-200 py-1 px-2 ${inputClassName}`}
-          onChange={(e) => onChange(e)}
-          type={type}
-          value={value}
-          autoComplete={autoComplete}
-          required={required}
-          id={id}
-          name={name}
-          placeholder={placeholder}
-        />
+        <div
+          className={`flex items-center rounded p-1 bg-slate-900 outline-slate-600 outline outline-2 focus-within:outline-slate-300 text-slate-200 ${inputClassName}`}
+        >
+          {Icon && iconPosition === "left" && (
+            <Icon className={`${iconClassName}`} />
+          )}
+          <input
+            className={`bg-transparent w-full h-full py-1 px-2 outline-none`}
+            onChange={onChange}
+            type={type}
+            value={value}
+            autoComplete={autoComplete}
+            required={required}
+            id={id}
+            name={name}
+            placeholder={placeholder}
+          />
+          {Icon && iconPosition === "right" && (
+            <Icon className={`${iconClassName}`} />
+          )}
+        </div>
       )}
     </div>
   );

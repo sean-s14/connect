@@ -22,8 +22,8 @@ let links = [
     Icon: HomeIcon,
   },
   {
-    href: "/explore",
-    text: "Explore",
+    href: "/search",
+    text: "Search",
     Icon: MagnifyingGlassIcon,
   },
 ];
@@ -50,7 +50,6 @@ export default function Navbar() {
   }
 
   if (status === "authenticated") {
-    console.log("Generating auth links:", session?.user?.username);
     // Check if an object with text 'Profile' exists in the links array
     // If it does, do nothing, otherwise, add it to the beginning of the array
     if (!authenticatedLinks.find((link) => link.text === "Profile")) {
