@@ -37,7 +37,7 @@ export default function Home() {
     fetchPosts
   );
 
-  // TODO: Build out error page
+  // TODO: Build out error page / throw error
   if (error) return <div>Error: {error}</div>;
 
   return (
@@ -63,7 +63,7 @@ export default function Home() {
       )}
 
       {status === "authenticated" && (
-        <div className="w-full max-w-[90%]">
+        <div className="w-full max-w-[90%] flex flex-col items-center">
           <NewPost
             onPostCreated={(post) => setSelfPosts((prev) => [post, ...prev])}
           />

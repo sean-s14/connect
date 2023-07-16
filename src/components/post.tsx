@@ -63,7 +63,6 @@ export default function Post(props: {
       .then((res) => res.json())
       .then((data) => {
         const { post } = data;
-        console.log("Updated Post:", post);
         setLikeCount(post?.likeCount || 0);
         setLiked(post?.liked || false);
       })
@@ -106,7 +105,6 @@ export default function Post(props: {
       .then((res) => res.json())
       .then((data) => {
         const { post } = data;
-        console.log(post);
         props?.onUpdate?.();
       })
       .catch((err) => console.log(err))
