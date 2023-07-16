@@ -23,14 +23,18 @@ export default function SearchPage() {
 
   const {
     flattenedData: users,
-    error,
+    error: errorUsers,
     isLoading: isLoadingUsers,
     size,
     setSize,
     hasReachedEnd,
   } = usePagination<
     Omit<IUser, "email" | "password" | "dateOfBirth" | "gender" | "updatedAt">
-  >(`/api/users?username=${search}`, 20, fetchUsers);
+  >(
+    `/api/users${search && search !== "" && "?username=" + search}`,
+    20,
+    fetchUsers
+  );
 
   function handleChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -46,6 +50,14 @@ export default function SearchPage() {
     e.stopPropagation();
     e.nativeEvent.stopImmediatePropagation();
     router.push(`/profile/${username}`);
+  }
+
+  if (errorUsers) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <p className="text-slate-500 text-center">{errorUsers.message}</p>
+      </div>
+    );
   }
 
   return (
@@ -84,22 +96,22 @@ export default function SearchPage() {
           {Array.isArray(users) &&
             users.map((user, index) => (
               <button
-                key={user._id}
-                className="flex items-center py-2 px-4 rounded-md gap-3 bg-slate-800 hover:bg-slate-700 transition-colors"
-                onClick={(e) => viewProfile(e, user.username)}
+                key={index}
+                className="flex items-center py-2 px-4 rounded-md gap-3 bg-slate-800 hover:bg-slate-700 transition-colors border-2 border-slate-700"
+                onClick={(e) => viewProfile(e, user?.username)}
               >
                 <Image
-                  src={user.image ?? ""}
-                  alt={user.username}
+                  src={user?.image ?? ""}
+                  alt={user?.username}
                   width={50}
                   height={50}
                   className="rounded-full"
                 />
                 <div className="flex flex-col items-start">
-                  <p className="text-lg font-semibold">{user.username}</p>
-                  <p className="text-sm text-slate-400">{user.name}</p>
+                  <p className="text-lg font-semibold">{user?.username}</p>
+                  <p className="text-sm text-slate-400">{user?.name}</p>
                   <p className="text-sm text-slate-400">
-                    Joined {convertDate(user.createdAt)}
+                    Joined {convertDate(user?.createdAt)}
                   </p>
                 </div>
               </button>

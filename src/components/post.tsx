@@ -28,7 +28,7 @@ export default function Post(props: {
   containerClassName?: string;
 }) {
   const {
-    author,
+    author = { name: "", username: "" },
     content = "no content",
     createdAt,
     parent,
@@ -74,6 +74,8 @@ export default function Post(props: {
     e.preventDefault();
     e.stopPropagation();
     e.nativeEvent.stopImmediatePropagation();
+    if (session?.user?.username && session.user.username !== author?.username)
+      return;
     fetch(`/api/posts?_id=${_id.toString()}`, {
       method: "DELETE",
       headers: {
@@ -270,14 +272,15 @@ export default function Post(props: {
       </Modal>
 
       {/* Delete Button */}
-      {session?.user?.username === author?.username && (
-        <button
-          className="cursor-pointer p-0.5 absolute right-5 top-5 rounded-full border border-red-400 hover:bg-red-400/30 transition-colors"
-          onClick={openDeleteModal}
-        >
-          <XMarkIcon className="h-7 w-7 text-red-400" />
-        </button>
-      )}
+      {session?.user?.username &&
+        session.user.username === author?.username && (
+          <button
+            className="cursor-pointer p-0.5 absolute right-5 top-5 rounded-full border border-red-400 hover:bg-red-400/30 transition-colors"
+            onClick={openDeleteModal}
+          >
+            <XMarkIcon className="h-7 w-7 text-red-400" />
+          </button>
+        )}
 
       {/* Name · Username · Date */}
       <div

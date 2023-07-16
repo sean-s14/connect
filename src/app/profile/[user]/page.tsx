@@ -184,34 +184,36 @@ export default function UserPage(props: { params: { user: string } }) {
               <span>Edit Profile</span>
             </Link>
           ) : (
-            // Follow Button
-            <button
-              className={`rounded-lg bg-slate-900 border-2 border-slate-600 hover:bg-slate-800 hover:border-slate-600 transition-colors w-24 h-10 flex items-center justify-center ${
-                followingIsLoading && "cursor-wait"
-              }`}
-              onClick={!!followers?.following ? handleUnfollow : handleFollow}
-              disabled={followingIsLoading}
-              onMouseEnter={() => {
-                if (followers?.following) {
-                  document.getElementById("following-id")!.innerHTML =
-                    "Unfollow";
-                }
-              }}
-              onMouseLeave={() => {
-                if (followers?.following) {
-                  document.getElementById("following-id")!.innerHTML =
-                    "Following";
-                }
-              }}
-            >
-              {followingIsLoading ? (
-                <Spinner style={{ width: 20, height: 20, borderWidth: 3 }} />
-              ) : (
-                <span id={"following-id"}>
-                  {followers?.following ? "Following" : "Follow"}
-                </span>
-              )}
-            </button>
+            session?.user?.id && (
+              // Follow Button
+              <button
+                className={`rounded-lg bg-slate-900 border-2 border-slate-600 hover:bg-slate-800 hover:border-slate-600 transition-colors w-24 h-10 flex items-center justify-center ${
+                  followingIsLoading && "cursor-wait"
+                }`}
+                onClick={!!followers?.following ? handleUnfollow : handleFollow}
+                disabled={followingIsLoading}
+                onMouseEnter={() => {
+                  if (followers?.following) {
+                    document.getElementById("following-id")!.innerHTML =
+                      "Unfollow";
+                  }
+                }}
+                onMouseLeave={() => {
+                  if (followers?.following) {
+                    document.getElementById("following-id")!.innerHTML =
+                      "Following";
+                  }
+                }}
+              >
+                {followingIsLoading ? (
+                  <Spinner style={{ width: 20, height: 20, borderWidth: 3 }} />
+                ) : (
+                  <span id={"following-id"}>
+                    {followers?.following ? "Following" : "Follow"}
+                  </span>
+                )}
+              </button>
+            )
           )}
         </div>
 

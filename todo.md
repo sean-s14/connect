@@ -10,12 +10,7 @@
 
 ---
 
-## Components
-
-- Navbar
-  - Search Bar
-
----
+- Generate unique icons
 
 ## Features
 

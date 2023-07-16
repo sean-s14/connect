@@ -33,8 +33,12 @@ export default function PostPage({
       </div>
     );
 
-  // TODO: Add error page
-  if (error) return <div>Error: {error}</div>;
+  if (error)
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <p className="text-slate-500 text-center">{error.message}</p>
+      </div>
+    );
 
   return (
     <div className="pt-10 min-w-full flex flex-col items-center">

@@ -2,7 +2,6 @@ import NextAuth from "next-auth";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import TwitterProvider from "next-auth/providers/twitter";
-import EmailProvider from "next-auth/providers/email";
 import MongoDBAdapter from "@/config/mongoDBAdapter";
 import mongoClientPromise from "@/config/mongoClient";
 import { Session } from "next-auth";
@@ -23,17 +22,6 @@ export const authOptions = {
       clientId: process.env.TWITTER_CLIENT_ID || "",
       clientSecret: process.env.TWITTER_CLIENT_SECRET || "",
       version: "2.0",
-    }),
-    EmailProvider({
-      server: {
-        host: process.env.EMAIL_SERVER_HOST || "",
-        port: Number(process.env.EMAIL_SERVER_PORT) || 0,
-        auth: {
-          user: process.env.EMAIL_SERVER_USER || "",
-          pass: process.env.EMAIL_SERVER_PASS || "",
-        },
-      },
-      from: process.env.EMAIL_FROM || "",
     }),
   ],
   callbacks: {
