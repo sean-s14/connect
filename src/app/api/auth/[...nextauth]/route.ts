@@ -1,21 +1,16 @@
 import NextAuth from "next-auth";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
+import TwitterProvider from "next-auth/providers/twitter";
 import EmailProvider from "next-auth/providers/email";
 import MongoDBAdapter from "@/config/mongoDBAdapter";
 import mongoClientPromise from "@/config/mongoClient";
 import { Session } from "next-auth";
 import { AdapterUser } from "next-auth/adapters";
-import Auth0Provider from "next-auth/providers/auth0";
 
 export const authOptions = {
   adapter: MongoDBAdapter(mongoClientPromise),
   providers: [
-    Auth0Provider({
-      clientId: process.env.AUTH0_CLIENT_ID || "",
-      clientSecret: process.env.AUTH0_CLIENT_SECRET || "",
-      issuer: process.env.AUTH0_ISSUER || "",
-    }),
     GoogleProvider({
       clientId: process.env.GOOGLE_ID || "",
       clientSecret: process.env.GOOGLE_SECRET || "",
@@ -23,6 +18,11 @@ export const authOptions = {
     GithubProvider({
       clientId: process.env.GITHUB_ID || "",
       clientSecret: process.env.GITHUB_SECRET || "",
+    }),
+    TwitterProvider({
+      clientId: process.env.TWITTER_CLIENT_ID || "",
+      clientSecret: process.env.TWITTER_CLIENT_SECRET || "",
+      version: "2.0",
     }),
     EmailProvider({
       server: {
@@ -47,6 +47,9 @@ export const authOptions = {
       if (session?.user) {
         session.user.id = user.id;
         session.user.username = user.username;
+        if (user?.image) {
+          session.user.image = user.image;
+        }
       }
       return session;
     },

@@ -6,6 +6,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import MongoDBAdapter from "@/config/mongoDBAdapter";
 import mongoClientPromise from "@/config/mongoClient";
+import { supabase } from "@/config/supabaseClient";
+import getImageUrl from "@/utils/getImageUrl";
 
 export async function GET(request: Request) {
   try {
@@ -24,6 +26,20 @@ export async function PATCH(request: Request) {
     const session = await getServerSession(authOptions);
     await mongooseConnect();
     const body = await request.json();
+
+    if (body?.image) {
+      const user = await User.findOne({ _id: session?.user?.id });
+      if (user?.image) {
+        const { data, error } = await supabase.storage
+          .from("profile-images")
+          .remove([user.image]);
+        if (error) {
+          console.log(error);
+        }
+      }
+
+      body.image = getImageUrl(body.image);
+    }
 
     const user = await User.findOneAndUpdate(
       { _id: session?.user?.id },

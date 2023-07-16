@@ -10,18 +10,10 @@
 
 ---
 
-## Pages
-
-- Error
-- 404
-
----
-
 ## Components
 
 - Navbar
   - Search Bar
-  - Tabs to switch between 'Explore' and 'Following'
 
 ---
 
@@ -29,7 +21,6 @@
 
 - Notifications
 - Authentication
-  - Twitter
   - Settings (Private)
     - Privacy
     - Security

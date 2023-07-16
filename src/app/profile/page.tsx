@@ -7,6 +7,8 @@ import { capitalise } from "@sean14/utils";
 import Spinner from "@/components/loaders/spinner";
 import { AiOutlineArrowLeft } from "react-icons/ai";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { uploadImage } from "@/utils/uploadImage";
 
 const USER_FIELDS = [
   { field: "name" },
@@ -23,13 +25,16 @@ export default function UserEditPage() {
   const [loading, setLoading] = useState(true); // loading state for fetching user data
   const [submitLoading, setSubmitLoading] = useState(false); // loading state for submitting form
 
+  const [image, setImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
   // create a useReducer hook to handle form state
   const [formState, dispatch] = useReducer(formReducer, {
     name: "",
     username: "",
     email: "",
     bio: "",
-    // image: "", TODO: add image upload
+    image: "",
   });
 
   // fetch user data by username
@@ -45,6 +50,7 @@ export default function UserEditPage() {
           dispatch({ type: "username", payload: user.username });
           dispatch({ type: "email", payload: user.email });
           dispatch({ type: "bio", payload: user.bio });
+          dispatch({ type: "image", payload: user?.image ?? "" });
         })
         .catch((err) => {
           console.log(err);
@@ -66,6 +72,8 @@ export default function UserEditPage() {
         return { ...state, email: action.payload };
       case "bio":
         return { ...state, bio: action.payload };
+      case "image":
+        return { ...state, image: action.payload };
       default:
         return state;
     }
@@ -79,16 +87,21 @@ export default function UserEditPage() {
   }
 
   // handle form submission
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    // make patch request to update user
+
+    let filepath = "";
+    if (image) {
+      filepath = await uploadImage(image);
+    }
+
     setSubmitLoading(true);
     fetch(`/api/users/${session?.user?.username}/private`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(formState),
+      body: JSON.stringify({ ...formState, image: filepath }),
     })
       .then((res) => res.json())
       .then((data) => {
@@ -100,6 +113,12 @@ export default function UserEditPage() {
       .finally(() => {
         setSubmitLoading(false);
       });
+  }
+
+  function handleFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files![0];
+    setImage(file);
+    setImagePreview(URL.createObjectURL(file));
   }
 
   return (
@@ -123,11 +142,27 @@ export default function UserEditPage() {
 
       {/* Form */}
       <form
-        onSubmit={(e) => handleSubmit(e)}
+        onSubmit={handleSubmit}
         className={`${
           loading ? "opacity-0 pointer-events-none" : "opacity-1"
         } transition-opacity duration-500 flex flex-col gap-5 bg-slate-800 p-8 rounded-xl`}
       >
+        <input type="file" name="image" onChange={handleFileSelected} />
+
+        {formState?.image ? (
+          <Image
+            src={imagePreview || formState.image}
+            alt="Upload Preview"
+            width={100}
+            height={100}
+            priority={true}
+            style={{ width: 100, height: 100 }}
+            className="rounded-full self-center"
+          />
+        ) : (
+          <p>No image uploaded yet</p>
+        )}
+
         {USER_FIELDS.map(({ field, multiline }, index) => (
           <Input
             key={index}
@@ -135,11 +170,13 @@ export default function UserEditPage() {
             type="text"
             name={field}
             id={field}
-            value={formState[field]}
+            value={formState[field] ?? ""}
             onChange={handleChange}
             multiline={multiline}
           />
         ))}
+
+        {/* Button to save changes */}
         <button className="btn btn-solid p-1 h-10 flex items-center justify-center">
           {submitLoading ? (
             <Spinner style={{ width: 24, height: 24, borderWidth: 3 }} />
