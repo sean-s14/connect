@@ -27,14 +27,7 @@ export default function Post(props: {
   onUpdate?: () => void;
   containerClassName?: string;
 }) {
-  const {
-    content = "no content",
-    createdAt,
-    parent,
-    replyCount = 0,
-    replies = [],
-    _id,
-  } = props.post;
+  const post = props.post;
   const { containerClassName = "" } = props;
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -52,7 +45,7 @@ export default function Post(props: {
     e.stopPropagation();
     e.nativeEvent.stopImmediatePropagation();
     setLikedLoading(true);
-    fetch(`/api/posts?_id=${_id.toString()}&like=true`, {
+    fetch(`/api/posts?_id=${post?._id.toString()}&like=true`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -75,10 +68,10 @@ export default function Post(props: {
     e.nativeEvent.stopImmediatePropagation();
     if (
       session?.user?.username &&
-      session.user.username !== props?.post?.author?.username
+      session.user.username !== post?.author?.username
     )
       return;
-    fetch(`/api/posts?_id=${_id.toString()}`, {
+    fetch(`/api/posts?_id=${post?._id.toString()}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -99,7 +92,7 @@ export default function Post(props: {
     if (!session) return;
     if (!reply) return;
     setReplyLoading(true);
-    fetch(`/api/posts?parentId=${_id.toString()}`, {
+    fetch(`/api/posts?parentId=${post?._id.toString()}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -159,7 +152,7 @@ export default function Post(props: {
     e.preventDefault();
     e.stopPropagation();
     e.nativeEvent.stopImmediatePropagation();
-    router.push(`/profile/${props?.post?.author?.username}/${_id.toString()}`);
+    router.push(`/profile/${post?.author?.username}/${post?._id.toString()}`);
   }
 
   function viewParentPost(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
@@ -167,7 +160,9 @@ export default function Post(props: {
     e.stopPropagation();
     e.nativeEvent.stopImmediatePropagation();
     router.push(
-      `/profile/${parent?.author?.username}/${parent?._id?.toString()}`
+      `/profile/${
+        post?.parent?.author?.username
+      }/${post?.parent?._id?.toString()}`
     );
   }
 
@@ -177,7 +172,7 @@ export default function Post(props: {
     e.nativeEvent.stopImmediatePropagation();
     // TODO: When updating profile username, returning to the profile page will not work. Instead find profile by id and use the 'as' prop in the router.push() function like so:
     // router.push(`/profile/${username}`, `/profile/${author._id}`);
-    router.push(`/profile/${props?.post?.author?.username}`);
+    router.push(`/profile/${post?.author?.username}`);
   }
 
   return (
@@ -225,20 +220,23 @@ export default function Post(props: {
         {/* Comment replying to */}
         <div className="flex flex-col gap-2 w-full">
           <div className="flex items-center gap-2">
-            <span className={`${!props?.post?.author?.name && "line-through"}`}>
-              {props?.post?.author?.name ?? "deleted"}
+            <span className={`${!post?.author?.name && "line-through"}`}>
+              {post?.author?.name ?? "deleted"}
             </span>
             ·
             <span
               className={`${styles.username} ${
-                !props?.post?.author?.name && "line-through"
+                !post?.author?.name && "line-through"
               }`}
             >
-              @{props?.post?.author?.username ?? "deleted"}
+              @{post?.author?.username ?? "deleted"}
             </span>
-            ·<span className={`${styles.date}`}>{convertDate(createdAt)}</span>
+            ·
+            <span className={`${styles.date}`}>
+              {post?.createdAt && convertDate(post.createdAt)}
+            </span>
           </div>
-          <p>{content}</p>
+          <p>{post?.content ?? "no content"}</p>
         </div>
 
         <hr className="m-2 w-0.5 h-10 bg-slate-100/40 border-none" />
@@ -275,7 +273,7 @@ export default function Post(props: {
 
       {/* Delete Button */}
       {session?.user?.username &&
-        session.user.username === props?.post?.author?.username && (
+        session.user.username === post?.author?.username && (
           <button
             className="cursor-pointer p-0.5 absolute right-5 top-5 rounded-full border border-red-400 hover:bg-red-400/30 transition-colors"
             onClick={openDeleteModal}
@@ -290,25 +288,28 @@ export default function Post(props: {
         role="link"
         className="flex items-center gap-2 font-semibold hover:bg-slate-700 transition-colors rounded-lg max-w-fit p-1 px-2 -ml-2"
       >
-        <span className={`${!props?.post?.author?.name && "line-through"}`}>
-          {props?.post?.author?.name ?? "deleted"}
+        <span className={`${!post?.author?.name && "line-through"}`}>
+          {post?.author?.name ?? "deleted"}
         </span>
         ·
         <span
           className={`${
-            !props?.post?.author?.name && "line-through"
+            !post?.author?.name && "line-through"
           } text-slate-500 text-sm`}
         >
-          @{props?.post?.author?.username ?? "deleted"}
+          @{post?.author?.username ?? "deleted"}
         </span>
-        ·<div className="text-slate-500 text-sm">{convertDate(createdAt)}</div>
+        ·
+        <div className="text-slate-500 text-sm">
+          {post?.createdAt && convertDate(post.createdAt)}
+        </div>
       </div>
 
       {/* Content */}
-      <p>{content}</p>
+      <p>{post?.content ?? "no content"}</p>
 
       {/* Parent */}
-      {parent && (
+      {post?.parent && (
         <div
           role="link"
           onClick={viewParentPost}
@@ -316,30 +317,32 @@ export default function Post(props: {
         >
           <div className="flex items-center gap-2">
             <span className="text-sm text-slate-300">
-              {parent?.author?.name}
+              {post?.parent?.author?.name}
             </span>
             ·
             <span className={`${styles.username}`}>
-              {parent?.author?.username}
+              {post?.parent?.author?.username}
             </span>
             ·
             <span className={`${styles.username}`}>
-              {convertDate(parent?.createdAt)}
+              {post?.parent?.createdAt && convertDate(post.parent.createdAt)}
             </span>
           </div>
-          <p className="text-md text-slate-300">{parent?.content}</p>
+          <p className="text-md text-slate-300">
+            {post?.parent?.content ?? "no content"}
+          </p>
           {/* Likes and replies */}
           <div className="flex gap-2">
             <div
               className={`py-1 px-3 rounded-3xl flex gap-3 items-center max-w-fit bg-slate-900 ${
-                parent?.liked && "bg-slate-950"
+                post?.parent?.liked && "bg-slate-950"
               }`}
             >
-              <span className="text-sm">{parent?.likeCount || 0}</span>
+              <span className="text-sm">{post?.parent?.likeCount || 0}</span>
               <HandThumbUpIcon className="h-4 w-4" />
             </div>
             <div className="py-1 px-3 rounded-3xl flex gap-3 items-center bg-slate-900 max-w-fit">
-              <span className="text-sm">{parent?.replyCount || 0}</span>
+              <span className="text-sm">{post?.parent?.replyCount || 0}</span>
               <ChatBubbleBottomCenterIcon className="h-4 w-4" />
             </div>
           </div>
@@ -353,7 +356,7 @@ export default function Post(props: {
           <button
             className={`mt-2 py-1 px-4 rounded-3xl flex gap-3 items-center bg-slate-900 ${
               status === "authenticated" &&
-              session?.user?.username !== props?.post?.author?.username
+              session?.user?.username !== post?.author?.username
                 ? "hover:bg-slate-950 cursor-pointer"
                 : "cursor-default"
             } ${
@@ -362,7 +365,7 @@ export default function Post(props: {
             onClick={handleLike}
             disabled={
               status !== "authenticated" ||
-              session?.user?.username === props?.post?.author?.username
+              session?.user?.username === post?.author?.username
             }
           >
             {likedLoading ? (
@@ -379,7 +382,7 @@ export default function Post(props: {
             role="link"
             onClick={viewPost}
           >
-            {replyCount}
+            {post?.replyCount || 0}
             <ChatBubbleBottomCenterIcon className="h-6 w-6" />
           </div>
         </div>
@@ -398,11 +401,11 @@ export default function Post(props: {
 
       {/* Replies */}
       <div className="cursor-auto flex flex-col gap-2">
-        {replies && replies.length > 0 && (
+        {post?.replies && post?.replies.length > 0 && (
           <div>
             <hr className="my-2 border-slate-500" />
 
-            {replies.map(
+            {post.replies.map(
               ({
                 _id,
                 author,
