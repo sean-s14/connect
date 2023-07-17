@@ -31,8 +31,8 @@ export default function Post(props: {
   const { containerClassName = "" } = props;
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [liked, setLiked] = useState(props.post.liked || false);
-  const [likeCount, setLikeCount] = useState(props.post.likeCount || 0);
+  const [liked, setLiked] = useState(props?.post?.liked || false);
+  const [likeCount, setLikeCount] = useState(props?.post?.likeCount || 0);
   const [likedLoading, setLikedLoading] = useState(false);
   const [deleted, setDeleted] = useState(false);
   const [reply, setReply] = useState("");
