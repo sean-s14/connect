@@ -17,6 +17,7 @@ const USER_FIELDS = [
   { field: "bio", multiline: true },
 ];
 
+// TODO: Include ability to select a portion of the image to crop
 export default function UserEditPage() {
   const router = useRouter();
   const { data: session, update: updateSession } = useSession({
@@ -125,7 +126,7 @@ export default function UserEditPage() {
     <div className="min-h-screen min-w-full p-5 relative flex flex-col items-center justify-center">
       {/* Go back button */}
       <button
-        className="absolute top-10 left-10 rounded flex items-center gap-2 bg-slate-800 hover:bg-slate-950 py-2 px-3"
+        className="absolute top-5 sm:top-10 left-5 sm:left-10 rounded flex items-center gap-2 bg-slate-800 hover:bg-slate-950 py-2 px-3"
         onClick={() =>
           router.push(
             `/profile/${
@@ -145,7 +146,7 @@ export default function UserEditPage() {
         onSubmit={handleSubmit}
         className={`${
           loading ? "opacity-0 pointer-events-none" : "opacity-1"
-        } transition-opacity duration-500 flex flex-col gap-5 bg-slate-800 p-8 rounded-xl`}
+        } transition-opacity duration-500 flex flex-col gap-5 bg-slate-800 p-4 sm:p-8 rounded-xl max-w-[95%]`}
       >
         <input type="file" name="image" onChange={handleFileSelected} />
 

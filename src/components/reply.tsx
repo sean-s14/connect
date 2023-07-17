@@ -70,25 +70,29 @@ export default function Reply(props: {
   return (
     <div className="py-2">
       <div
-        className="flex items-center gap-2 font-semibold hover:bg-slate-700 transition-colors rounded-lg max-w-fit p-1 px-2 -ml-2 cursor-pointer"
+        className="flex-col sm:flex-row flex items-start sm:items-center gap-0 sm:gap-2 font-semibold hover:bg-slate-700 transition-colors rounded-lg max-w-fit p-1 px-2 -ml-2 cursor-pointer"
         onClick={viewProfile}
         role="link"
       >
         <span
-          className={`${!author?.name && "line-through"} font-normal text-sm`}
+          className={`${
+            !author?.name && "line-through"
+          } font-normal text-xs sm:text-sm`}
         >
           {author?.name ?? "deleted"}
         </span>
-        ·
+        <span className="hidden sm:flex">·</span>
         <span
           className={`${
             !author?.name && "line-through"
-          } text-slate-500 text-sm`}
+          } text-slate-500 text-xs sm:text-sm`}
         >
           @{author?.username ?? "deleted"}
         </span>
-        ·
-        <span className="text-slate-500 text-sm">{convertDate(createdAt)}</span>
+        <span className="hidden sm:flex">·</span>
+        <span className="text-slate-500 text-xs sm:text-sm">
+          {convertDate(createdAt)}
+        </span>
       </div>
 
       <span

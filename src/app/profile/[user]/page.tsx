@@ -137,7 +137,7 @@ export default function UserPage(props: { params: { user: string } }) {
 
   return (
     <div
-      className={`flex flex-col items-start justify-start p-10 min-w-100 min-h-screen transition-opacity duration-500`}
+      className={`flex flex-col items-start justify-start p-5 sm:p-10 min-w-100 min-h-screen transition-opacity duration-500`}
     >
       {/* Profile Image */}
       {user?.image ? (

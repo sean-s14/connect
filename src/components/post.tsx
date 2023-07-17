@@ -18,8 +18,8 @@ import Reply from "@/components/reply";
 import { IPostWithAuthorAndParent } from "@/types/post";
 
 const styles = {
-  username: "text-slate-500 text-sm",
-  date: "text-slate-500 text-sm",
+  username: "text-slate-500 text-xs sm:text-sm",
+  date: "text-slate-500 text-xs sm:text-sm",
 };
 
 export default function Post(props: {
@@ -177,7 +177,7 @@ export default function Post(props: {
 
   return (
     <div
-      className={`flex flex-col gap-2 w-full border-solid border-2 border-slate-700 px-6 py-4 shadow-slate-950 rounded-2xl bg-slate-800 relative cursor-pointer ${containerClassName} ${
+      className={`flex flex-col gap-2 w-full border-solid border-2 border-slate-700 px-4 sm:px-6 py-2 sm:py-4 shadow-slate-950 rounded-2xl bg-slate-800 relative cursor-pointer ${containerClassName} ${
         deleted && "hidden"
       }`}
       onClick={viewPost}
@@ -219,24 +219,28 @@ export default function Post(props: {
       >
         {/* Comment replying to */}
         <div className="flex flex-col gap-2 w-full">
-          <div className="flex items-center gap-2">
-            <span className={`${!post?.author?.name && "line-through"}`}>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-0 sm:gap-2">
+            <span
+              className={`${
+                !post?.author?.name && "line-through"
+              } text-xs sm:text-sm`}
+            >
               {post?.author?.name ?? "deleted"}
             </span>
-            ·
+            <span className="hidden sm:flex">·</span>
             <span
               className={`${styles.username} ${
                 !post?.author?.name && "line-through"
-              }`}
+              } text-xs sm:text-sm`}
             >
               @{post?.author?.username ?? "deleted"}
             </span>
-            ·
-            <span className={`${styles.date}`}>
+            <span className="hidden sm:flex">·</span>
+            <span className={`${styles.date} text-xs sm:text-sm`}>
               {post?.createdAt && convertDate(post.createdAt)}
             </span>
           </div>
-          <p>{post?.content ?? "no content"}</p>
+          <p className="text-sm sm:text-md">{post?.content ?? "no content"}</p>
         </div>
 
         <hr className="m-2 w-0.5 h-10 bg-slate-100/40 border-none" />
@@ -286,27 +290,31 @@ export default function Post(props: {
       <div
         onClick={viewProfile}
         role="link"
-        className="flex items-center gap-2 font-semibold hover:bg-slate-700 transition-colors rounded-lg max-w-fit p-1 px-2 -ml-2"
+        className="flex-col sm:flex-row flex items-start sm:items-center gap-0 sm:gap-2 font-semibold hover:bg-slate-700 transition-colors rounded-lg max-w-fit p-1 px-2 -ml-2"
       >
-        <span className={`${!post?.author?.name && "line-through"}`}>
-          {post?.author?.name ?? "deleted"}
-        </span>
-        ·
         <span
           className={`${
             !post?.author?.name && "line-through"
-          } text-slate-500 text-sm`}
+          } text-sm sm:text-md`}
+        >
+          {post?.author?.name ?? "deleted"}
+        </span>
+        <span className="hidden sm:flex">·</span>
+        <span
+          className={`${
+            !post?.author?.name && "line-through"
+          } text-slate-500 text-xs sm:text-sm`}
         >
           @{post?.author?.username ?? "deleted"}
         </span>
-        ·
-        <div className="text-slate-500 text-sm">
+        <span className="hidden sm:flex">·</span>
+        <span className="text-slate-500 text-xs sm:text-sm">
           {post?.createdAt && convertDate(post.createdAt)}
-        </div>
+        </span>
       </div>
 
       {/* Content */}
-      <p>{post?.content ?? "no content"}</p>
+      <p className="text-sm sm:text-md">{post?.content ?? "no content"}</p>
 
       {/* Parent */}
       {post?.parent && (
@@ -315,15 +323,15 @@ export default function Post(props: {
           onClick={viewParentPost}
           className="border-2 border-slate-600 rounded-xl ml-8 p-2 flex flex-col gap-2 hover:bg-slate-700 transition-colors"
         >
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-slate-300">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-0 sm:gap-2">
+            <span className="text-xs sm:text-sm text-slate-300">
               {post?.parent?.author?.name}
             </span>
-            ·
+            <span className="hidden sm:flex">·</span>
             <span className={`${styles.username}`}>
               {post?.parent?.author?.username}
             </span>
-            ·
+            <span className="hidden sm:flex">·</span>
             <span className={`${styles.username}`}>
               {post?.parent?.createdAt && convertDate(post.parent.createdAt)}
             </span>

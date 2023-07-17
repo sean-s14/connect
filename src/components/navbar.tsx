@@ -87,12 +87,12 @@ export default function Navbar() {
       {/* MOBILE < 640px */}
       <div className="w-full flex sm:hidden items-center justify-between px-8">
         {/* Menu Toggle */}
-        <button onClick={toggleMenu} className="">
+        <button onClick={toggleMenu}>
           <FaBarsStaggered className="h-8 w-8 md:h-5 md:w-5" />
         </button>
 
         {/* Website Logo/Name */}
-        <Link href={"/"} className="text-2xl font-bold">
+        <Link href={"/"} className="text-xl font-bold">
           Connect
         </Link>
 
