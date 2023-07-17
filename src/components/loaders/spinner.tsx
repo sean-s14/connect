@@ -1,6 +1,6 @@
 export default function Spinner(props: { style?: {} }) {
   return (
-    <>
+    <div>
       <style jsx>{`
         @-webkit-keyframes rotate-forever {
           0% {
@@ -81,6 +81,6 @@ export default function Spinner(props: { style?: {} }) {
           ...props.style,
         }}
       ></span>
-    </>
+    </div>
   );
 }

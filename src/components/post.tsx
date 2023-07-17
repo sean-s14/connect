@@ -28,7 +28,6 @@ export default function Post(props: {
   containerClassName?: string;
 }) {
   const {
-    author = { name: "", username: "" },
     content = "no content",
     createdAt,
     parent,
@@ -74,7 +73,10 @@ export default function Post(props: {
     e.preventDefault();
     e.stopPropagation();
     e.nativeEvent.stopImmediatePropagation();
-    if (session?.user?.username && session.user.username !== author?.username)
+    if (
+      session?.user?.username &&
+      session.user.username !== props?.post?.author?.username
+    )
       return;
     fetch(`/api/posts?_id=${_id.toString()}`, {
       method: "DELETE",
@@ -157,7 +159,7 @@ export default function Post(props: {
     e.preventDefault();
     e.stopPropagation();
     e.nativeEvent.stopImmediatePropagation();
-    router.push(`/profile/${author?.username}/${_id.toString()}`);
+    router.push(`/profile/${props?.post?.author?.username}/${_id.toString()}`);
   }
 
   function viewParentPost(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
@@ -175,7 +177,7 @@ export default function Post(props: {
     e.nativeEvent.stopImmediatePropagation();
     // TODO: When updating profile username, returning to the profile page will not work. Instead find profile by id and use the 'as' prop in the router.push() function like so:
     // router.push(`/profile/${username}`, `/profile/${author._id}`);
-    router.push(`/profile/${author?.username}`);
+    router.push(`/profile/${props?.post?.author?.username}`);
   }
 
   return (
@@ -223,16 +225,16 @@ export default function Post(props: {
         {/* Comment replying to */}
         <div className="flex flex-col gap-2 w-full">
           <div className="flex items-center gap-2">
-            <span className={`${!author?.name && "line-through"}`}>
-              {author?.name ?? "deleted"}
+            <span className={`${!props?.post?.author?.name && "line-through"}`}>
+              {props?.post?.author?.name ?? "deleted"}
             </span>
             ·
             <span
               className={`${styles.username} ${
-                !author?.name && "line-through"
+                !props?.post?.author?.name && "line-through"
               }`}
             >
-              @{author?.username ?? "deleted"}
+              @{props?.post?.author?.username ?? "deleted"}
             </span>
             ·<span className={`${styles.date}`}>{convertDate(createdAt)}</span>
           </div>
@@ -273,7 +275,7 @@ export default function Post(props: {
 
       {/* Delete Button */}
       {session?.user?.username &&
-        session.user.username === author?.username && (
+        session.user.username === props?.post?.author?.username && (
           <button
             className="cursor-pointer p-0.5 absolute right-5 top-5 rounded-full border border-red-400 hover:bg-red-400/30 transition-colors"
             onClick={openDeleteModal}
@@ -288,16 +290,16 @@ export default function Post(props: {
         role="link"
         className="flex items-center gap-2 font-semibold hover:bg-slate-700 transition-colors rounded-lg max-w-fit p-1 px-2 -ml-2"
       >
-        <span className={`${!author?.name && "line-through"}`}>
-          {author?.name ?? "deleted"}
+        <span className={`${!props?.post?.author?.name && "line-through"}`}>
+          {props?.post?.author?.name ?? "deleted"}
         </span>
         ·
         <span
           className={`${
-            !author?.name && "line-through"
+            !props?.post?.author?.name && "line-through"
           } text-slate-500 text-sm`}
         >
-          @{author?.username ?? "deleted"}
+          @{props?.post?.author?.username ?? "deleted"}
         </span>
         ·<div className="text-slate-500 text-sm">{convertDate(createdAt)}</div>
       </div>
@@ -351,7 +353,7 @@ export default function Post(props: {
           <button
             className={`mt-2 py-1 px-4 rounded-3xl flex gap-3 items-center bg-slate-900 ${
               status === "authenticated" &&
-              session?.user?.username !== author?.username
+              session?.user?.username !== props?.post?.author?.username
                 ? "hover:bg-slate-950 cursor-pointer"
                 : "cursor-default"
             } ${
@@ -360,7 +362,7 @@ export default function Post(props: {
             onClick={handleLike}
             disabled={
               status !== "authenticated" ||
-              session?.user?.username === author?.username
+              session?.user?.username === props?.post?.author?.username
             }
           >
             {likedLoading ? (
@@ -397,7 +399,7 @@ export default function Post(props: {
       {/* Replies */}
       <div className="cursor-auto flex flex-col gap-2">
         {replies && replies.length > 0 && (
-          <>
+          <div>
             <hr className="my-2 border-slate-500" />
 
             {replies.map(
@@ -426,7 +428,7 @@ export default function Post(props: {
                 </div>
               )
             )}
-          </>
+          </div>
         )}
       </div>
     </div>
