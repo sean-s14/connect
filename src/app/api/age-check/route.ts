@@ -4,7 +4,8 @@ import { cookies } from "next/headers";
 export async function GET(request: Request) {
   try {
     const cookieStore = cookies();
-    const isAdult = cookieStore.get("isAdult")?.value === "true";
+    const isAdultCookie = cookieStore.get("isAdult");
+    const isAdult = isAdultCookie ? isAdultCookie?.value === "true" : undefined;
     return NextResponse.json({ isAdult });
   } catch (error) {
     console.error(error);

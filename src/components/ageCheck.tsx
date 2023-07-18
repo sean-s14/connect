@@ -8,6 +8,20 @@ export default function AgeCheck(props: { children: React.ReactNode }) {
     undefined
   );
   const [isLoading, setIsLoading] = useState(true);
+  const [isDisabled, setIsDisabled] = useState(true);
+  const [date, setDate] = useState({
+    day: "",
+    month: "",
+    year: "",
+  });
+
+  useEffect(() => {
+    if (date.day && date.month && date.year) {
+      setIsDisabled(false);
+    } else {
+      setIsDisabled(true);
+    }
+  }, [date]);
 
   useEffect(() => {
     if (userIsAdult === undefined) {
@@ -15,6 +29,7 @@ export default function AgeCheck(props: { children: React.ReactNode }) {
         .then((res) => res.json())
         .then((data) => {
           setUserIsAdult(data?.isAdult);
+          setIsLoading(false);
         });
     } else {
       setIsLoading(false);
@@ -55,6 +70,10 @@ export default function AgeCheck(props: { children: React.ReactNode }) {
     );
   }
 
+  function updateDate(e: React.ChangeEvent<HTMLSelectElement>) {
+    setDate({ ...date, [e.target.name]: e.target.value });
+  }
+
   if (userIsAdult === undefined) {
     return (
       <div className="bg-slate-800 flex flex-col items-center justify-center min-h-screen min-w-full">
@@ -65,7 +84,12 @@ export default function AgeCheck(props: { children: React.ReactNode }) {
         >
           <h3 className="text-xl font-semibold">Enter Your Date of Birth</h3>
           <div className="flex items-center gap-3 text-slate-800">
-            <select name="day" id="day" className="w-20 rounded py-1">
+            <select
+              name="day"
+              id="day"
+              className="w-20 rounded py-1"
+              onChange={updateDate}
+            >
               <option value="" className="text-center">
                 Day
               </option>
@@ -75,7 +99,12 @@ export default function AgeCheck(props: { children: React.ReactNode }) {
                 </option>
               ))}
             </select>
-            <select name="month" id="month" className="w-20 rounded py-1">
+            <select
+              name="month"
+              id="month"
+              className="w-20 rounded py-1"
+              onChange={updateDate}
+            >
               <option value="" className="text-center">
                 Month
               </option>
@@ -85,7 +114,12 @@ export default function AgeCheck(props: { children: React.ReactNode }) {
                 </option>
               ))}
             </select>
-            <select name="year" id="year" className="w-20 rounded py-1">
+            <select
+              name="year"
+              id="year"
+              className="w-20 rounded py-1"
+              onChange={updateDate}
+            >
               <option value="" className="text-center">
                 Year
               </option>
@@ -98,7 +132,11 @@ export default function AgeCheck(props: { children: React.ReactNode }) {
           </div>
           <button
             type="submit"
-            className="py-2 px-4 rounded bg-slate-800 hover:bg-slate-900"
+            className={`py-2 px-4 rounded bg-slate-800 hover:bg-slate-900 ${
+              isDisabled && "opacity-50 cursor-not-allowed"
+            }`}
+            // disable button if any of the select fields are empty
+            disabled={isDisabled}
           >
             Confirm
           </button>
