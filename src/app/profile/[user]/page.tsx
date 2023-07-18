@@ -148,6 +148,7 @@ export default function UserPage(props: { params: { user: string } }) {
           height={120}
           priority={true}
           className="rounded-full mb-5 self-center outline outline-4 outline-slate-950"
+          style={{ width: 120, height: 120 }}
         />
       ) : (
         <div className="w-[120px] h-[120px]"></div>

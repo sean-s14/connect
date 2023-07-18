@@ -2,14 +2,15 @@
 
 import { useState, useEffect } from "react";
 import {
-  UserPlusIcon,
-  UserIcon,
-  Cog6ToothIcon,
-  HomeIcon,
-  MagnifyingGlassIcon,
-} from "@heroicons/react/24/outline";
-import { FiLogOut, FiLogIn } from "react-icons/fi";
+  AiOutlineQuestion,
+  AiOutlineHome,
+  AiOutlineUser,
+  AiOutlineUserAdd,
+} from "react-icons/ai";
+import { PiMagnifyingGlassLight } from "react-icons/pi";
 import { FaBarsStaggered } from "react-icons/fa6";
+import { BiCog } from "react-icons/bi";
+import { FiLogOut, FiLogIn } from "react-icons/fi";
 import Link from "next/link";
 import Image from "next/image";
 import { signIn, signOut, useSession } from "next-auth/react";
@@ -19,12 +20,17 @@ let links = [
   {
     href: "/",
     text: "Home",
-    Icon: HomeIcon,
+    Icon: AiOutlineHome,
   },
   {
     href: "/search",
     text: "Search",
-    Icon: MagnifyingGlassIcon,
+    Icon: PiMagnifyingGlassLight,
+  },
+  {
+    href: "/policy",
+    text: "Help",
+    Icon: AiOutlineQuestion,
   },
 ];
 
@@ -32,7 +38,7 @@ const authenticatedLinks = [
   {
     href: "/settings",
     text: "Settings",
-    Icon: Cog6ToothIcon,
+    Icon: BiCog,
   },
 ];
 
@@ -56,7 +62,7 @@ export default function Navbar() {
       authenticatedLinks.unshift({
         href: `/profile/${session?.user?.username}`,
         text: "Profile",
-        Icon: UserIcon,
+        Icon: AiOutlineUser,
       });
     }
 
@@ -162,7 +168,7 @@ export default function Navbar() {
                     href={"/api/auth/signin"}
                     className="bg-slate-700 rounded-lg p-2 w-52 flex justify-center items-center gap-4"
                   >
-                    <UserPlusIcon className="h-10 w-10" />
+                    <AiOutlineUserAdd className="h-10 w-10" />
                     <span className="text-xl">Signup</span>
                   </Link>
                 </div>
@@ -237,7 +243,7 @@ export default function Navbar() {
                 href={"/api/auth/signin"}
                 className="hover:bg-slate-700 flex gap-2 items-center justify-center p-3 rounded-full group relative"
               >
-                <UserPlusIcon className="h-8 w-8" />
+                <AiOutlineUserAdd className="h-8 w-8" />
                 <span className="tooltip left-16">Signup</span> {/* Tooltip */}
               </Link>
             </div>
@@ -310,7 +316,7 @@ export default function Navbar() {
                 href={"/api/auth/signin"}
                 className="btn-solid flex gap-2 items-center justify-center p-2"
               >
-                <UserPlusIcon className="h-6 w-6" />
+                <AiOutlineUserAdd className="h-6 w-6" />
                 <span className="font-medium">Signup</span>
               </Link>
             </div>
